@@ -32,7 +32,19 @@
                         >
                             <AIcon type="PlusOutlined" />{{ $t('product.index.083446-0') }}
                         </j-permission-button>
-                        <a-dropdown trigger="hover">
+
+                        <j-permission-button
+                            :hasPermission="`${permission}:bind`"
+                            :popConfirm="{
+                                        title: $t('product.index.083446-2'),
+                                        onConfirm: () => table.clickUnBind(),
+                                        }"
+                            >
+                            <AIcon type="DisconnectOutlined"/>
+                            {{ $t('product.index.083446-3') }}
+                        </j-permission-button>
+
+                        <!-- <a-dropdown trigger="hover">
                             <a-button>{{ $t('product.index.083446-1') }}</a-button>
                             <template #overlay>
                                 <a-menu>
@@ -62,7 +74,7 @@
                                     </a-menu-item>
                                 </a-menu>
                             </template>
-                        </a-dropdown>
+                        </a-dropdown> -->
                     </a-space>
                 </template>
 
@@ -180,6 +192,7 @@
                         table.getPermissLabel(slotProps.permission)
                     }}
                 </template>
+
                 <template #state="slotProps">
                     <j-badge-status
                         :status="slotProps.state.value"
@@ -190,6 +203,7 @@
                         }"
                     ></j-badge-status>
                 </template>
+
                 <template #action="slotProps">
                     <a-space :size="16">
                         <j-permission-button
@@ -247,7 +261,8 @@ import EditPermissionDialog from '../components/EditPermissionDialog.vue';
 import NextDialog from '../components/NextDialog.vue';
 import { onlyMessage } from '@/utils/comm';
 import {
-    getDeviceOrProductList_api,
+    //getDeviceOrProductList_api,
+    getProductAssetList_api,
     getPermission_api,
     getPermissionDict_api,
     unBindDeviceOrProduct_api,
@@ -277,7 +292,7 @@ const columns = [
         search: {
             type: 'string',
         },
-        width: 120
+        width: 200
     },
     {
         title: $t('product.index.083446-6'),
@@ -289,14 +304,14 @@ const columns = [
             first: true,
         },
     },
-    {
-        title: $t('product.index.083446-5'),
-        dataIndex: 'permission',
-        key: 'permission',
-        ellipsis: true,
-        scopedSlots: true,
-        width: 300,
-    },
+    // {
+    //     title: $t('product.index.083446-5'),
+    //     dataIndex: 'permission',
+    //     key: 'permission',
+    //     ellipsis: true,
+    //     scopedSlots: true,
+    //     width: 300,
+    // },
     {
         title: $t('product.index.083446-7'),
         dataIndex: 'describe',
@@ -308,7 +323,7 @@ const columns = [
         dataIndex: 'state',
         key: 'state',
         ellipsis: true,
-        width: 80,
+        width: 120,
         search: {
             type: 'select',
             options: [
@@ -343,9 +358,10 @@ const tableData = reactive({
     permissionList: [] as any[],
     defaultPermission: [] as string[]
 });
+
 const table = {
     init: () => {
-        table.getPermissionDict();
+        //table.getPermissionDict();
         watch(
             () => props.parentId,
             () => {
@@ -362,13 +378,13 @@ const table = {
         if (!data) return [];
         else
             return [
-                {
-                    permission: `${permission}:assert`,
-                    key: 'edit',
-                    tooltip: { title: $t('product.index.083446-12') },
-                    icon: 'EditOutlined',
-                    onClick: () => table.clickEdit(data),
-                },
+                // {
+                //     permission: `${permission}:assert`,
+                //     key: 'edit',
+                //     tooltip: { title: $t('product.index.083446-12') },
+                //     icon: 'EditOutlined',
+                //     onClick: () => table.clickEdit(data),
+                // },
                 {
                     permission: `${permission}:bind`,
                     key: 'unbind',
@@ -452,35 +468,29 @@ const table = {
             tableData.selectedRows = _arr
         }
     },
+
     // 获取并整理数据
     getData: (params: object, parentId: string) =>
         new Promise((resolve) => {
-            getDeviceOrProductList_api(params).then((resp) => {
+            getProductAssetList_api(params).then((resp) => {
                 type resultType = {
                     data: any[];
                     total: number;
                     pageSize: number;
                     pageIndex: number;
                 };
-                const { pageIndex, pageSize, total, data } =
-                    resp.result as resultType;
+                const { pageIndex, pageSize, total, data } = resp.result as resultType;
                 const ids = data.map((item) => item.id);
-                getPermission_api('product', ids, parentId).then(
-                    (perResp: any) => {
-                        const permissionObj = {};
-                        perResp.result.forEach((item: any) => {
-                            permissionObj[item.assetId] =
-                                item.grantedPermissions;
-                        });
-                        data.forEach((item) => {
-                            item.permission = permissionObj[item.id];
-                            item.state = {
-                                value:
-                                    item.state === 1
-                                        ? 'online'
-                                        : item.state === 0
-                                        ? 'offline'
-                                        : '',
+
+                data.forEach((item) => {
+                    item.permission = {};
+                    item.state = {
+                            value:
+                                item.state === 1
+                                    ? 'online'
+                                    : item.state === 0
+                                    ? 'offline'
+                                    : '',
                                 text:
                                     item.state === 1
                                         ? $t('product.index.083446-9')
@@ -500,10 +510,47 @@ const table = {
                             },
                             status: 200,
                         });
-                    },
-                );
+
+                // getPermission_api('product', ids, parentId).then(
+                //     (perResp: any) => {
+                //         const permissionObj = {};
+                //         perResp.result.forEach((item: any) => {
+                //              permissionObj[item.assetId] = item.grantedPermissions;
+                //          });
+                //         data.forEach((item) => {
+                //             item.permission = permissionObj[item.id];
+                //             item.state = {
+                //                 value:
+                //                     item.state === 1
+                //                         ? 'online'
+                //                         : item.state === 0
+                //                         ? 'offline'
+                //                         : '',
+                //                 text:
+                //                     item.state === 1
+                //                         ? $t('product.index.083446-9')
+                //                         : item.state === 0
+                //                         ? $t('product.index.083446-10')
+                //                         : '',
+                //             };
+                //         });
+
+                //         resolve({
+                //             code: 200,
+                //             result: {
+                //                 data: data,
+                //                 pageIndex,
+                //                 pageSize,
+                //                 total,
+                //             },
+                //             status: 200,
+                //         });
+                //     },
+                // );
             });
         }),
+
+    
     // 整理参数并获取数据
     requestFun: async (oParams: any) => {
         if (props.parentId) {
@@ -513,21 +560,12 @@ const table = {
                 terms: [
                     ...oParams.terms,
                     {
-                        column: 'id',
-                        termType: 'dim-assets',
-                        value: {
-                            assetType: 'product',
-                            targets: [
-                                {
-                                    type: 'org',
-                                    id: props.parentId,
-                                },
-                            ],
-                        },
+                        "column": "id$in-dim-asset$org$product",
+                        "value": [props.parentId]
                     },
-                ],
-            };
-            const resp: any = await table.getData(params, props.parentId);
+          ]
+        };
+        const resp: any = await table.getData(params, props.parentId);
             return {
                 code: resp.status,
                 result: resp.result,
@@ -571,15 +609,15 @@ const table = {
     clickUnBind: (row?: any) => {
         const ids = row ? [row.id] : [...tableData._selectedRowKeys];
         if (ids.length < 1) return onlyMessage($t('product.index.083446-16'), 'warning');
-        const params = [
-            {
-                targetType: 'org',
-                targetId: props.parentId,
-                assetType: 'product',
-                assetIdList: ids,
-            },
-        ];
-        const response = unBindDeviceOrProduct_api('product', params)
+        // const params = [
+        //     {
+        //         targetType: 'org',
+        //         targetId: props.parentId,
+        //         assetType: 'product',
+        //         assetIdList: ids,
+        //     },
+        // ];
+        const response = unBindDeviceOrProduct_api(props.parentId, 'product', ids)
         response.then(() => {
             tableData._selectedRowKeys = [];
             onlyMessage($t('product.index.083446-17'));

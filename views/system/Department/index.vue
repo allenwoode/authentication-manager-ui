@@ -8,7 +8,7 @@
         <div class="right">
 <!--           && extraComponents?.length-->
           <a-tabs
-            v-if="isNoCommunity"
+            v-if="true"
             v-model:activeKey="activeKey"
             destroyInactiveTabPane
           >
@@ -24,9 +24,9 @@
                 v-model:bindBool="bindBool"
               />
             </a-tab-pane>
-            <a-tab-pane key="position" :tab="$t('Department.index.945805-3')">
+            <!-- <a-tab-pane key="position" :tab="$t('Department.index.945805-3')">
               <Position :parentId="departmentId" @changeTabs="onChangeTabs" />
-            </a-tab-pane>
+            </a-tab-pane> -->
             <a-tab-pane key="user" :tab="$t('Department.index.945805-2')">
               <User :parentId="departmentId" :positionId="positionId" />
             </a-tab-pane>
@@ -41,8 +41,8 @@
 <script setup lang="ts" name="Department">
 import LeftTree from "./components/LeftTree.vue";
 import User from "./user/index.vue";
-import Position from "./positions/index.vue";
-import { isNoCommunity } from "@/utils";
+//import Position from "./positions/index.vue";
+//import { isNoCommunity } from "@/utils";
 import Product from './product/index.vue'
 import Device from './device/index.vue'
 
@@ -70,6 +70,7 @@ const _extra = [
     component: Device
   },
 ]
+
 const openDeviceBind = () => {
   bindBool.value = true;
   activeKey.value = "device";

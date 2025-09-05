@@ -33,7 +33,21 @@
               <AIcon type="PlusOutlined"/>
               {{ $t('device.index.988419-0') }}
             </j-permission-button>
-            <a-dropdown trigger="hover">
+
+            <j-permission-button
+                      :hasPermission="`${permission}:bind`"
+                      :popConfirm="{
+                        title: $t('device.index.988419-2'),
+                        onConfirm: () =>
+                          table.clickUnBind(),
+                      }"
+                    >
+                      <AIcon
+                        type="DisconnectOutlined"
+                      />
+                      {{ $t('device.index.988419-3') }}
+                    </j-permission-button>
+            <!-- <a-dropdown trigger="hover">
               <a-button>{{ $t('device.index.988419-1') }}</a-button>
               <template #overlay>
                 <a-menu>
@@ -65,12 +79,117 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-            </a-dropdown>
+            </a-dropdown> -->
           </a-space>
         </template>
 
         <template #card="slotProps">
           <CardBox
+                        :value="slotProps"
+                        :actions="table.getActions(slotProps, 'card')"
+                        v-bind="slotProps"
+                        :active="
+                            table._selectedRowKeys.value.includes(slotProps.id)
+                        "
+                        @click="table.onSelectChange"
+                        :status="slotProps.state?.value"
+                        :statusText="slotProps.state?.text"
+                        :statusNames="{
+                            online: 'processing',
+                            offline: 'error',
+                        }"
+                    >
+                        <template #img>
+                            <slot name="img">
+                                <img
+                                    :src="systemImg.deviceProductImg"
+                                    style="cursor: pointer"
+                                />
+                            </slot>
+                        </template>
+                        <template #content>
+                            <h3 class="card-item-content-title" style='margin-bottom: 18px;'>
+                                {{ slotProps.name }}
+                            </h3>
+                            <a-row>
+                                <a-col :span="12">
+                                    <div class="card-item-content-text">ID</div>
+                                    <j-ellipsis style="width: calc(100% - 20px);">
+                                    <div
+                                        style="cursor: pointer"
+                                        class="card-item-content-value"
+                                    >
+                                        {{ slotProps.id }}
+                                    </div>
+                                    </j-ellipsis>
+                                </a-col>
+                                <a-col :span="12">
+                                    <div class="card-item-content-text">
+                                        {{ $t('product.index.083446-5') }}
+                                    </div>
+                                    <j-ellipsis style="width: calc(100% - 20px);">
+                                    <div
+                                        style="cursor: pointer"
+                                        class="card-item-content-value"
+                                    >
+                                        {{
+                                            table.permissionList.value.length &&
+                                            table.getPermissLabel(
+                                                slotProps.permission,
+                                            )
+                                        }}
+                                    </div>
+                                    </j-ellipsis>
+                                </a-col>
+                            </a-row>
+                        </template>
+                        <template #actions="item">
+                            <a-tooltip
+                                v-bind="item.tooltip"
+                                :title="item.disabled && item.tooltip.title"
+                            >
+                                <a-dropdown
+                                    placement="bottomRight"
+                                    v-if="item.key === 'others'"
+                                >
+                                    <a-button>
+                                        <AIcon :type="item.icon" />
+                                        <span>{{ item.text }}</span>
+                                    </a-button>
+                                    <template #overlay>
+                                        <a-menu>
+                                            <a-menu-item
+                                                v-for="(o, i) in item.children"
+                                                :key="i"
+                                            >
+                                                <a-button
+                                                    type="link"
+                                                    @click="o.onClick"
+                                                >
+                                                    <AIcon :type="o.icon" />
+                                                    <span>{{ o.text }}</span>
+                                                </a-button>
+                                            </a-menu-item>
+                                        </a-menu>
+                                    </template>
+                                </a-dropdown>
+                                <j-permission-button
+                                    v-else
+                                    :hasPermission="item.permission"
+                                    :tooltip="item.tooltip"
+                                    :pop-confirm="item.popConfirm"
+                                    @click="item.onClick"
+                                    :disabled="item.disabled"
+                                >
+                                    <AIcon :type="item.icon" />
+                                    <span v-if="item.key !== 'delete'">{{
+                                        item.text
+                                    }}</span>
+                                </j-permission-button>
+                            </a-tooltip>
+                        </template>
+                    </CardBox>
+          <!-- <CardBox
             :value="slotProps"
             :actions="[{ key: 1 }]"
             v-bind="slotProps"
@@ -150,7 +269,7 @@
                 <AIcon type="DisconnectOutlined"/>
               </j-permission-button>
             </template>
-          </CardBox>
+          </CardBox> -->
         </template>
 
         <template #permission="slotProps">
@@ -170,9 +289,9 @@
             }"
           ></JBadgeStatus>
         </template>
-        <template #registryTime="slotProps">
+        <template #createTime="slotProps">
         <span>{{
-            slotProps.registryTime ? dayjs(slotProps.registryTime).format(
+            slotProps.createTime ? dayjs(slotProps.createTime).format(
               'YYYY-MM-DD HH:mm:ss',
             ) : '-'
           }}</span>
@@ -226,6 +345,7 @@ import EditPermissionDialog from '../components/EditPermissionDialog.vue';
 import {onlyMessage} from '@/utils/comm';
 import {
   getDeviceList_api,
+  getDeviceAssetList_api,
   getPermission_api,
   getPermissionDict_api,
   unBindDeviceOrProduct_api,
@@ -260,6 +380,7 @@ const columns = [
     search: {
       type: 'string',
     },
+    width: 200
   },
   {
     title: $t('device.index.988419-7'),
@@ -303,18 +424,18 @@ const columns = [
         }),
     },
   },
-  {
-    title: $t('device.index.988419-5'),
-    dataIndex: 'permission',
-    key: 'permission',
-    ellipsis: true,
-    width: 300,
-    scopedSlots: true,
-  },
+  // {
+  //   title: $t('device.index.988419-5'),
+  //   dataIndex: 'permission',
+  //   key: 'permission',
+  //   ellipsis: true,
+  //   width: 300,
+  //   scopedSlots: true,
+  // },
   {
     title: $t('device.index.988419-9'),
-    dataIndex: 'registryTime',
-    key: 'registryTime',
+    dataIndex: 'createTime',
+    key: 'createTime',
     ellipsis: true,
     scopedSlots: true,
     width: 200,
@@ -336,15 +457,14 @@ const columns = [
       ],
     },
     scopedSlots: true,
-    width: 80
+    width: 120
   },
-
   {
     title: $t('device.index.988419-14'),
     dataIndex: 'action',
     key: 'action',
     fixed: 'right',
-    width: 150,
+    width: 100,
     scopedSlots: true,
   },
 ];
@@ -359,7 +479,7 @@ const table = {
   defaultPermission: [] as string[],
 
   init: () => {
-    table.getPermissionDict();
+    //table.getPermissionDict();
     watch(
       () => props.parentId,
       () => {
@@ -376,13 +496,13 @@ const table = {
     if (!data) return [];
     else
       return [
-        {
-          permission: `${permission}:assert`,
-          key: 'edit',
-          tooltip: {title: $t('device.index.988419-15')},
-          icon: 'EditOutlined',
-          onClick: () => table.clickEdit(data),
-        },
+        // {
+        //   permission: `${permission}:assert`,
+        //   key: 'edit',
+        //   tooltip: {title: $t('device.index.988419-15')},
+        //   icon: 'EditOutlined',
+        //   onClick: () => table.clickEdit(data),
+        // },
         {
           permission: `${permission}:bind`,
           key: 'unbind',
@@ -428,6 +548,7 @@ const table = {
     table._selectedRowKeys.value = [];
     table.selectedRows = [];
   },
+
   onSelect: (record: any, selected: boolean) => {
     const arr = [...table._selectedRowKeys.value]
     const _index = arr.findIndex(item => item === record?.id)
@@ -443,6 +564,7 @@ const table = {
       }
     }
   },
+
   onSelectAll: (selected: boolean, _: any[], changeRows: any) => {
     if (selected) {
       changeRows.map((i: any) => {
@@ -465,32 +587,23 @@ const table = {
       table.selectedRows = _arr
     }
   },
+
   // 获取并整理数据
   getData: (params: object, parentId: string) =>
+
     new Promise((resolve) => {
-      getDeviceList_api(params).then((resp) => {
+      getDeviceAssetList_api(params).then((resp) => {
         type resultType = {
           data: any[];
           total: number;
           pageSize: number;
           pageIndex: number;
         };
-        const {pageIndex, pageSize, total, data} =
-          resp.result as resultType;
+        const {pageIndex, pageSize, total, data} = resp.result as resultType;
         const ids = data.map((item) => item.id);
-        getPermission_api('device', ids, parentId).then(
-          (perResp: any) => {
-            const permissionObj = {};
-            perResp.result.forEach((item: any) => {
-              permissionObj[item.assetId] =
-                item.grantedPermissions;
-            });
-            data.forEach(
-              (item) =>
-                (item.permission = permissionObj[item.id]),
-            );
+        data.forEach((item) => (item.permission = {}));
 
-            resolve({
+        resolve({
               code: 200,
               result: {
                 data: data,
@@ -500,8 +613,31 @@ const table = {
               },
               status: 200,
             });
-          },
-        );
+
+        // getPermission_api('device', ids, parentId).then(
+        //   (perResp: any) => {
+        //     const permissionObj = {};
+        //     perResp.result.forEach((item: any) => {
+        //       permissionObj[item.assetId] =
+        //         item.grantedPermissions;
+        //     });
+        //     data.forEach(
+        //       (item) =>
+        //         (item.permission = permissionObj[item.id]),
+        //     );
+
+        //     resolve({
+        //       code: 200,
+        //       result: {
+        //         data: data,
+        //         pageIndex,
+        //         pageSize,
+        //         total,
+        //       },
+        //       status: 200,
+        //     });
+        //   },
+        // );
       });
     }),
   // 整理参数并获取数据
@@ -512,19 +648,12 @@ const table = {
         sorts: [{name: 'createTime', order: 'desc'}],
         terms: [
           ...oParams.terms,
-          {
-            column: 'id',
-            termType: 'dim-assets',
-            value: {
-              assetType: 'device',
-              targets: [
-                {
-                  type: 'org',
-                  id: props.parentId,
-                },
-              ],
+           {
+              "column": "id$in-dim-asset$org$device",
+              "value": [
+                props.parentId
+                ]
             },
-          },
         ],
       };
       const resp: any = await table.getData(params, props.parentId);
@@ -547,11 +676,13 @@ const table = {
       };
     }
   },
+
   clickAdd: (type?: string) => {
     // 设备资产分配弹窗操作类型: type = 'handle': 手动点击资产分配按钮, !type产品资产分配后, 自动弹出设备资产分配
     departmentStore.setType(type);
     dialogs.addShow = true;
   },
+
   queryPermissionList: async (ids: string[]) => {
     const resp: any = await getBindingsPermission('device', ids)
     if (resp.status === 200) {
@@ -562,6 +693,7 @@ const table = {
     }
     return []
   },
+
   clickEdit: async (row?: any) => {
     const ids = row ? [row.id] : [...table._selectedRowKeys.value];
     if (ids.length < 1) return onlyMessage($t('device.index.988419-17'), 'warning');
@@ -575,24 +707,19 @@ const table = {
     dialogs.permissList = _result as string[];
     dialogs.editShow = true;
   },
+
   clickUnBind: (row?: any) => {
     const ids = row ? [row.id] : [...table._selectedRowKeys.value];
     if (ids.length < 1) return onlyMessage($t('device.index.988419-18'), 'warning');
-    const params = [
-      {
-        targetType: 'org',
-        targetId: props.parentId,
-        assetType: 'device',
-        assetIdList: ids,
-      },
-    ];
-    const response = unBindDeviceOrProduct_api('device', params)
+
+    const response = unBindDeviceOrProduct_api(props.parentId, 'device', ids)
     response.then(() => {
       onlyMessage($t('device.index.988419-19'));
       table.refresh();
     });
     return response
   },
+
   refresh: () => {
     nextTick(() => {
       tableRef.value.reload();

@@ -133,6 +133,7 @@ const onSave = () => {
   dialogVisible.value = false
   refresh()
 }
+
 //取消选择
 const cancelSelect = () => {
   _selectedRowKeys.value = []
@@ -188,33 +189,11 @@ const handleParams = (e: any) => {
   queryParams.value = e
 }
 
-// 请求数据
+// 请求绑定用户数据
 const handleSearch = (oParams: any) =>
     requestFun(props.parentId, oParams, [
         {
-          terms: isNoCommunity ? [
-              {
-                  terms: [
-                      {
-                          "column": "id$in-org-user$org",
-                          "value": [
-                              props.parentId
-                          ]
-                      },
-                  ],
-              },
-              {
-                  type: 'or',
-                  terms: [
-                      {
-                          "column": "id$in-org-user$position",
-                          "value": [
-                              props.parentId
-                          ]
-                      }
-                  ]
-              }
-          ] : [
+          terms: [
             {
               terms: [
                   {
@@ -227,7 +206,20 @@ const handleSearch = (oParams: any) =>
             }
           ]
         }
-    ])
+    ]);
+
+// 请求数据
+// const handleSearch = (oParams: any) =>
+//     requestFun(props.parentId, oParams, [
+//       {
+//         terms: [
+//           {
+//             column: 'id$in-dimension$org$not',
+//             value: props.parentId,
+//           },
+//         ],
+//       },
+//     ]);
 
 // 取消绑定
 const unBind = (row?: any) => {

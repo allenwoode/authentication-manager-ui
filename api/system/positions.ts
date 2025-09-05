@@ -9,9 +9,10 @@ export const detail = (id: string) => request.post('/position/_query/detail/no-p
     "termType":"eq",
     "value": id
   }]})
-// 职位绑定用户
+
+// 组织绑定用户
 export const bindUser = (orgId: string, id: string, userIdList: Array<string>) => request.post(`/organization/${orgId}/position/${id}/users/_bind`, userIdList)
-// 职位解绑用户
+// 组织解绑用户
 export const unbindUser = (orgId: string, id: string, userIdList: Array<string>) => request.post(`/organization/${orgId}/position/${id}/users/_unbind`, userIdList)
 
 export const del = (id: string) => request.remove(`/position/${id}`)

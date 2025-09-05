@@ -11,7 +11,6 @@ export const getUserType_api = () => request.get(`/user/detail/types`);
 
 // 获取用户列表
 export const getUserList_api = (data: any) => request.post(`/user/detail/_query`, data);
-
 // 校验字段合法性
 export const validateField_api = (type: 'username' | 'password', name: string) => request.post(`/user/${type}/_validate`, name, {
     headers: {

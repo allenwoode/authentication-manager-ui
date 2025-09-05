@@ -118,7 +118,7 @@ const handleSearch = (oParams: any) =>
           },
         ],
       },
-    ])
+    ]);
 
 //
 const onSearch = (e: any) => {

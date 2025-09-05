@@ -40,8 +40,9 @@
                 onSelect: table.onSelectChange,
                 onSelectNone: table.cancelSelect,
                 onSelectAll: selectAll,
-                getCheckboxProps: (record) => ({
-                  disabled: !(record.permissionList?.length && record.permissionList.find((item: any) => item.value === 'share'))
+                getCheckboxProps: () => ({
+                  // disabled: !(record.permissionList?.length && record.permissionList.find((item: any) => item.value === 'share'))
+                  disabled: false
                 }),
             }"
             :columns="columns"
@@ -129,8 +130,10 @@
 <script setup lang="ts">
 import {  onlyMessage } from '@/utils/comm';
 import {
-    getDeviceOrProductList_api,
-    getDeviceList_api,
+    //getDeviceOrProductList_api,
+    //getDeviceList_api,
+    getProductAssetList_api,
+    getDeviceAssetList_api,
     bindDeviceOrProductList_api,
     getBindingsPermission,
 } from '@authentication-manager/api/system/department';
@@ -161,23 +164,23 @@ const confirm = () => {
     if (table.selectedRows.length < 1) {
         return onlyMessage($t('components.AddDeviceOrProductDialog.314014-6'), 'warning');
     }
-
-    const params = table.selectedRows.map((item: any) => ({
-        targetType: 'org',
-        targetId: props.parentId,
-        assetType: props.assetType,
-        assetIdList: [item.id],
-        // 保存时, 过滤没有的权限
-        permission: item.selectPermissions.filter((f: any) =>
-            (item.permissionList || []).map((m: any) => m.value).includes(f),
-        ),
-    }));
+    
+    // const params = table.selectedRows.map((item: any) => ({
+    //     targetType: 'org',
+    //     targetId: props.parentId,
+    //     assetType: props.assetType,
+    //     assetIdList: [item.id],
+    //     // 保存时, 过滤没有的权限
+    //     permission: item.selectPermissions.filter((f: any) =>
+    //         (item.permissionList || []).map((m: any) => m.value).includes(f),
+    //     ),
+    // }));
 
     // 分配产品资产后, 进入设备资产分配
     // departmentStore.setProductId(table.selectedRows.map((item: any) => item.id));
-
+    const ids = table.selectedRows.map((item: any) => item.id);
     loading.value = true;
-    bindDeviceOrProductList_api(props.assetType, params)
+    bindDeviceOrProductList_api(props.parentId, props.assetType, ids)
         .then(() => {
             onlyMessage($t('components.AddDeviceOrProductDialog.314014-7'));
             emits('confirm');
@@ -301,10 +304,11 @@ const table: any = {
     // 选中
     onSelectChange: (row: any) => {
         // 若该项的可选权限中没有分享权限，则不支持任何操作
-        if (!row.permissionList.find((item: any) => item.value === 'share')) {
-            onlyMessage($t('components.AddDeviceOrProductDialog.314014-8'), 'warning');
-            return;
-        }
+        // if (!row.permissionList.find((item: any) => item.value === 'share')) {
+        //     onlyMessage($t('components.AddDeviceOrProductDialog.314014-8'), 'warning');
+        //     return;
+        // }
+
         const selectedRowKeys = table._selectedRowKeys.value;
         const index = selectedRowKeys.indexOf(row.id);
 
@@ -327,10 +331,7 @@ const table: any = {
     // 获取并整理数据
     getData: (params: object, parentId: string) =>
         new Promise((resolve) => {
-            const api =
-                props.assetType === 'product'
-                    ? getDeviceOrProductList_api
-                    : getDeviceList_api;
+            const api = props.assetType === 'product' ? getProductAssetList_api : getDeviceAssetList_api;
             api(params).then((resp: any) => {
                 type resultType = {
                     data: any[];
@@ -338,8 +339,7 @@ const table: any = {
                     pageSize: number;
                     pageIndex: number;
                 };
-                const { pageIndex, pageSize, total, data } =
-                    resp.result as resultType;
+                const { pageIndex, pageSize, total, data } = resp.result as resultType;
                 const ids = data.map((item) => item.id);
                 // 资产权限排序: 查看/编辑/删除/共享
                 const idxMap = {
@@ -348,17 +348,8 @@ const table: any = {
                     delete: 2,
                     share: 3,
                 };
-                // fix: bug#10706
-                getBindingsPermission(props.assetType, ids).then(
-                    (perResp: any) => {
-                        data.forEach((item) => {
-                            item.permissionList = perResp.result
-                                .find((f: any) => f?.assetId === item.id)
-                                ?.permissionInfoList?.map((m: any) => ({
-                                    label: m.name,
-                                    value: m.id,
-                                    disabled: true,
-                                })) || [];
+                data.forEach((item) => {
+                            item.permissionList = [];
                             item.selectPermissions = ['read'];
                             // 资产排序
                             item.permissionList = item.permissionList
@@ -377,8 +368,8 @@ const table: any = {
                                         item.state === 1
                                             ? 'online'
                                             : item.state === 0
-                                                ? 'offline'
-                                                : '',
+                                            ? 'offline'
+                                            : '',
                                     text:
                                         item.state === 1
                                             ? $t('components.AddDeviceOrProductDialog.314014-9')
@@ -400,28 +391,81 @@ const table: any = {
                             },
                             status: 200,
                         });
-                    },
-                );
+
+                // fix: bug#10706
+                // getBindingsPermission(props.assetType, ids).then(
+                //     (perResp: any) => {
+                //         data.forEach((item) => {
+                //             item.permissionList = perResp.result
+                //                 .find((f: any) => f?.assetId === item.id)
+                //                 ?.permissionInfoList?.map((m: any) => ({
+                //                     label: m.name,
+                //                     value: m.id,
+                //                     disabled: true,
+                //                 })) || [];
+                //             item.selectPermissions = ['read'];
+                //             // 资产排序
+                //             item.permissionList = item.permissionList
+                //                 ?.map((m: any) => {
+                //                     return {
+                //                         ...m,
+                //                         idx: idxMap[m.value],
+                //                     };
+                //                 })
+                //                 ?.sort((a: any, b: any) => a.idx - b.idx);
+
+                //             // 产品的状态进行转换处理
+                //             if (props.assetType === 'product') {
+                //                 item.state = {
+                //                     value:
+                //                         item.state === 1
+                //                             ? 'online'
+                //                             : item.state === 0
+                //                                 ? 'offline'
+                //                                 : '',
+                //                     text:
+                //                         item.state === 1
+                //                             ? $t('components.AddDeviceOrProductDialog.314014-9')
+                //                             : item.state === 0
+                //                                 ? $t('components.AddDeviceOrProductDialog.314014-10')
+                //                                 : '',
+                //                 };
+                //             }
+                //         });
+                //         resolve({
+                //             code: 200,
+                //             result: {
+                //                 data: data.sort(
+                //                     (a, b) =>  b.createTime - a.createTime
+                //                 ),
+                //                 pageIndex,
+                //                 pageSize,
+                //                 total,
+                //             },
+                //             status: 200,
+                //         });
+                //     },
+                // );
             });
         }),
     // 整理参数并获取数据
     requestFun: async (oParams: any) => {
         queryCount.value += 1;
         if (props.parentId) {
-            let terms = [{
-                column: 'id',
-                termType: 'dim-assets$not',
-                value: {
-                    assetType: props.assetType,
-                    targets: [
-                        {
-                            type: 'org',
-                            id: props.parentId,
-                        },
-                    ],
-                },
-                type: 'and'
-            }]
+            // let terms = [{
+            //     column: 'id',
+            //     termType: 'dim-assets$not',
+            //     value: {
+            //         assetType: props.assetType,
+            //         targets: [
+            //             {
+            //                 type: 'org',
+            //                 id: props.parentId,
+            //             },
+            //         ],
+            //     },
+            //     type: 'and'
+            // }]
 
             // if (
             //     props.assetType !== 'device' ||
@@ -432,14 +476,20 @@ const table: any = {
             //     // 非设备|产品id不存在|有其他查询操作(queryCount+1)|设备页面手动点击资产分配, 均删除产品带入的id
             //     terms[0].terms.pop();
             // }
-            if (oParams.terms && oParams.terms.length > 0) {
-                terms = [...oParams.terms, ...terms]
-            }
+            // if (oParams.terms && oParams.terms.length > 0) {
+            //     terms = [...oParams.terms, ...terms]
+            // }
 
             const params = {
                 ...oParams,
                 sorts: [{ name: 'createTime', order: 'desc' }],
-                terms,
+                terms: [
+                    ...oParams.terms,
+                    {
+                        "column": "id$in-dim-asset$org$" + props.assetType + "$not",
+                        "value": [props.parentId]
+                    },
+                ],
             };
 
             const resp: any = await table.getData(params, props.parentId);
@@ -464,6 +514,7 @@ const table: any = {
         }
     },
 };
+
 table.init();
 
 const selectAll = (selected: boolean, selectedRows: any,changeRows:any) => {
@@ -488,6 +539,7 @@ const selectAll = (selected: boolean, selectedRows: any,changeRows:any) => {
             table.selectedRows = _row;
         }
 }
+
 const cancel = () => {
     departmentStore.setProductId(undefined)
     emits('update:visible', false)
