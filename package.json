@@ -2,7 +2,7 @@
   "name": "authentication-manager-ui",
   "id": "authentication-manager",
   "version": "1.0.0",
-  "description": "JetLinks sub module",
+  "description": "系统管理",
   "main": "index.ts",
   "dependencies": {},
   "peerDependencies": {}
