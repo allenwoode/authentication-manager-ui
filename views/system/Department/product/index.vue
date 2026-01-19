@@ -97,8 +97,8 @@
                         <template #img>
                             <slot name="img">
                                 <img
-                                    :src="systemImg.deviceProductImg"
-                                    style="cursor: pointer"
+                                    :src="slotProps.photoUrl"
+                                    style="cursor: pointer; width: 80px; height: 80px"
                                 />
                             </slot>
                         </template>
