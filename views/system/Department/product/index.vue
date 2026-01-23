@@ -120,7 +120,7 @@
                                 </a-col>
                                 <a-col :span="12">
                                     <div class="card-item-content-text">
-                                        {{ $t('product.index.083446-5') }}
+                                        {{ $t('product.index.083446-18') }}
                                     </div>
                                     <j-ellipsis style="width: calc(100% - 20px);">
                                     <div
@@ -270,7 +270,7 @@ import {
 } from '@authentication-manager/api/system/department';
 import { intersection } from 'lodash-es';
 import { useDepartmentStore } from '@/store/department';
-import {systemImg} from "@authentication-manager/assets";
+//import {systemImg} from "@authentication-manager/assets";
 import { useI18n } from 'vue-i18n';
 
 const { t: $t } = useI18n();

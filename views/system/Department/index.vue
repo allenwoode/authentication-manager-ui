@@ -5,6 +5,7 @@
         <div class="left">
           <LeftTree @change="onChange" />
         </div>
+        
         <div class="right">
 <!--           && extraComponents?.length-->
           <a-tabs
@@ -80,13 +81,13 @@ const onChange = (id: string) => {
   departmentId.value = id;
 };
 
-const onChangeTabs = (id) => {
-  positionId.value = id;
-  activeKey.value = "user";
-  setTimeout(() => {
-    positionId.value = undefined;
-  }, 100);
-};
+// const onChangeTabs = (id) => {
+//   positionId.value = id;
+//   activeKey.value = "user";
+//   setTimeout(() => {
+//     positionId.value = undefined;
+//   }, 100);
+// };
 
 // onMounted(() => {
 //   extraComponents.value = getModulesComponents("department");

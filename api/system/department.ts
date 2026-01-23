@@ -32,6 +32,10 @@ export const getPermissionDict_api = () => request.get(`/assets/bindings/product
 
 // 获取资产列表
 export const getProductAssetList_api = (data: object) => request.post(`/assets/product/_query`, data);
+
+// 获取型号导航栏列表
+export const getProductAssetListPost = (data: object) => request.post(`/device-product/query/no-paging?paging=false`, data);
+
 // 获取资产列表
 export const getDeviceAssetList_api = (data: object) => request.post(`/assets/device/_query`, data);
 

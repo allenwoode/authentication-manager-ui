@@ -125,19 +125,11 @@
                                 </a-col>
                                 <a-col :span="12">
                                     <div class="card-item-content-text">
-                                        {{ $t('product.index.083446-5') }}
+                                        {{ $t('product.index.083446-19') }}
                                     </div>
                                     <j-ellipsis style="width: calc(100% - 20px);">
-                                    <div
-                                        style="cursor: pointer"
-                                        class="card-item-content-value"
-                                    >
-                                        {{
-                                            table.permissionList.value.length &&
-                                            table.getPermissLabel(
-                                                slotProps.permission,
-                                            )
-                                        }}
+                                    <div class="card-item-content-value">
+                                        {{ slotProps.productName }}
                                     </div>
                                     </j-ellipsis>
                                 </a-col>
