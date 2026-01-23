@@ -28,13 +28,15 @@
         <div class="property-box">
             <div class="property-box-left" v-if="props.assetType === 'device'">
                 <div class="product-nav">
-                    <div class="product-list">
-                        <div class="list-render-sticky">
-                            <div class="product-list-header">{{ $t('Instance.index.133466-39') }}<span
-                                    class="product-count">({{ filteredProducts.length }})</span></div>
-                        </div>
+                    <div class="list-render-sticky">
+                        <div class="product-list-header">{{ $t('Instance.index.133466-39') }}<span
+                                class="product-count">({{ filteredProducts.length }})</span></div>
+                    </div>
+                    <div>
                         <a-input-search v-model:value="value" :placeholder="$t('Instance.index.133466-40')"
                             style="width: 260px; margin-bottom: 10px" @search="onSearch" :allowClear="true" />
+                    </div>
+                    <div class="product-list">
                         <a-card v-for="item in filteredProducts" :key="item.id"
                             :class="['product-card', { active: selectedProduct === item.id || selectedProducts.includes(item.id) }]"
                             hoverable>
@@ -129,7 +131,7 @@
                     <template #registryTime="slotProps">
                         <span>{{
                             slotProps.registryTime ? dayjs(slotProps.registryTime).format('YYYY-MM-DD HH:mm:ss') : "--"
-                            }}</span>
+                        }}</span>
                     </template>
                 </j-pro-table>
             </div>
@@ -621,17 +623,22 @@ watch(value, (v) => {
 <style lang="less" scoped>
 .property-box {
     display: flex;
+
     .property-box-left {
         width: 260px;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         max-height: calc(100vh - 140px);
     }
 
     .property-box-right {
         flex: 1;
     }
+}
+
+.product-list-header {
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
 .product-list {
