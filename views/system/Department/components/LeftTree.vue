@@ -110,7 +110,6 @@ const permission = 'system/Department'
 const route = useRoute();
 
 const save = useRoute().query.save
-
 const emits = defineEmits(['change'])
 const searchValue = ref('') // 搜索内容
 const loading = ref<boolean>(false) // 数据加载状态
@@ -256,17 +255,33 @@ const openDialog = (row: any = {}) => {
   visible.value = true
 }
 
-const onSelect = (val: string[]) => {
-  if(val.length){
-    selectedKeys.value = val
+const onSelect = (val: string[], info?: any) => {
+  if (val && val.length) {
+    const id = val[0];
+    // // try to read parentId from the event info, node data or fallback to treeMap
+    const parentId =
+      info?.node?.dataRef?.parentId || info?.node?.origin?.parentId ||
+      (info?.selectedNodes && info.selectedNodes[0]?.parentId) ||
+      (treeMap.has(id) ? treeMap.get(id).parentId : undefined);
+
+    const keys: string[] = [id];
+    keys.push(parentId);
+    // // push all first level node id to keys
+    treeData.value.forEach((item) => { 
+      keys.push(item.id);
+    });
+
+    selectedKeys.value = keys;
+  } else {
+    selectedKeys.value = [];
   }
 }
 
 watch(
   () => selectedKeys.value,
   (n) => {
-    //console.log('sssss')
-    emits('change', n?.[0])
+    //console.log('==============>', n);
+    emits('change', n)
   },
   {
     immediate: true,

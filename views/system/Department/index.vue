@@ -20,7 +20,9 @@
             >
               <component
                 :is="item.component"
+                :parentIds="parentIds"
                 :parentId="departmentId"
+                :pparentId="parentId"
                 @open-device-bind="openDeviceBind"
                 v-model:bindBool="bindBool"
               />
@@ -49,6 +51,8 @@ import Device from './device/index.vue'
 
 const activeKey = ref<"product" | "device" | "user">("product");
 
+const parentIds = ref<string[]>([]);
+const parentId = ref<string>("");
 const departmentId = ref<string>("");
 const positionId = ref<string>("");
 const extraComponents = ref([]);
@@ -77,8 +81,10 @@ const openDeviceBind = () => {
   activeKey.value = "device";
 };
 
-const onChange = (id: string) => {
-  departmentId.value = id;
+const onChange = (n: string[] = []) => {
+  departmentId.value = n[0] || "";
+  parentId.value = n[1] || "";
+  parentIds.value = n.slice(2);
 };
 
 // const onChangeTabs = (id) => {

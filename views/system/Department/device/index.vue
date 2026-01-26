@@ -307,11 +307,13 @@
     </FullPage>
 
     <div class="dialogs">
-      <AddDeviceOrProductDialog
+      <AddDeviceDialog
         v-if="dialogs.addShow"
         v-model:visible="dialogs.addShow"
         :query-columns="columns"
+        :parent-ids="props.parentIds"
         :parent-id="props.parentId"
+        :pparent-id="props.pparentId"
         :all-permission="table.permissionList.value"
         asset-type="device"
         @confirm="table.refresh"
@@ -332,13 +334,12 @@
 </template>
 
 <script setup lang="ts" name="device">
-import AddDeviceOrProductDialog from '../components/AddDeviceOrProductDialog.vue';
+import AddDeviceDialog from '../components/DeviceDialog.vue';
 import EditPermissionDialog from '../components/EditPermissionDialog.vue';
 import {onlyMessage} from '@/utils/comm';
 import {
-  getDeviceList_api,
   getDeviceAssetList_api,
-  getPermission_api,
+  //getPermission_api,
   getPermissionDict_api,
   unBindDeviceOrProduct_api,
   getDeviceProduct_api,
@@ -349,7 +350,7 @@ import {intersection} from 'lodash-es';
 import type {dictType} from '../typings';
 import {useDepartmentStore} from '@/store/department';
 import dayjs from 'dayjs';
-import {systemImg} from "@authentication-manager/assets";
+//import {systemImg} from "@authentication-manager/assets";
 import { useI18n } from 'vue-i18n';
 
 const { t: $t } = useI18n();
@@ -359,7 +360,9 @@ const permission = 'system/Department';
 
 const emits = defineEmits(['update:bindBool']);
 const props = defineProps<{
+  parentIds: string[];
   parentId: string;
+  pparentId: string;
   bindBool: boolean;
 }>();
 const columns = [
@@ -637,14 +640,14 @@ const table = {
     if (props.parentId) {
       const params = {
         ...oParams,
-        sorts: [{name: 'createTime', order: 'desc'}],
+        sorts: [{name: 'id', order: 'desc'}],
         terms: [
           ...oParams.terms,
-           {
+            {
               "column": "id$in-dim-asset$org$device",
-              "value": [
-                props.parentId
-                ]
+              //"column": "dimensionId",
+              //"termType": "eq",
+              "value": [props.parentId]
             },
         ],
       };

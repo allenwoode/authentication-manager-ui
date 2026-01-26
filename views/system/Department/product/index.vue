@@ -224,11 +224,13 @@
         </FullPage>
 
         <div class="dialogs">
-            <AddDeviceOrProductDialog
+            <ProductDialog
                 v-if="dialogs.addShow"
                 v-model:visible="dialogs.addShow"
                 :query-columns="columns"
+                :parent-ids="parentIds"
                 :parent-id="parentId"
+                :pparent-id="pparentId"
                 :all-permission="tableData.permissionList"
                 asset-type="product"
                 @confirm="table.addConfirm"
@@ -256,14 +258,14 @@
 
 <script setup lang="ts" name="product">
 
-import AddDeviceOrProductDialog from '../components/AddDeviceOrProductDialog.vue';
+import ProductDialog from '../components/ProductDialog.vue';
 import EditPermissionDialog from '../components/EditPermissionDialog.vue';
 import NextDialog from '../components/NextDialog.vue';
 import { onlyMessage } from '@/utils/comm';
 import {
     //getDeviceOrProductList_api,
     getProductAssetList_api,
-    getPermission_api,
+    //getPermission_api,
     getPermissionDict_api,
     unBindDeviceOrProduct_api,
     getBindingsPermission,
@@ -279,7 +281,9 @@ const permission = 'system/Department';
 const departmentStore = useDepartmentStore();
 const emits = defineEmits(['openDeviceBind']);
 const props = defineProps<{
-    parentId: string;
+    parentId: string; // current organization id
+    pparentId: string; // current organization's parent id
+    parentIds: string[]; // current organization's parent ids
 }>();
 
 const columns = [
@@ -556,14 +560,16 @@ const table = {
         if (props.parentId) {
             const params = {
                 ...oParams,
-                sorts: [{ name: 'createTime', order: 'desc' }],
+                sorts: [{ name: 'id', order: 'desc' }],
                 terms: [
                     ...oParams.terms,
                     {
                         "column": "id$in-dim-asset$org$product",
+                        //"column": "dimensionId",
+                        //"termType": "in",
                         "value": [props.parentId]
-                    },
-          ]
+                    }
+                ]
         };
         const resp: any = await table.getData(params, props.parentId);
             return {

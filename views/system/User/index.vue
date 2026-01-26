@@ -1,148 +1,99 @@
 <template>
   <j-page-container>
     <div class="user-container">
-      <pro-search
-          :columns="columns"
-          target="system-user"
-          @search="handleParams"
-      />
+      <pro-search :columns="columns" target="system-user" @search="handleParams" />
       <FullPage>
-        <j-pro-table
-            ref="tableRef"
-            :columns="columns"
-            :request="getUserList_api"
-            mode="TABLE"
-            :params="queryParams"
-            :defaultParams="{
-                        sorts: [
-                            { name: 'createTime', order: 'desc' },
-                            { name: 'username', order: 'asc', value: 'admin' },
-                        ],
-                    }"
-            :scroll="{ y: 'calc(100% - 60px)' }"
-        >
+        <j-pro-table ref="tableRef" :columns="columns" :request="getOrgUserList" mode="TABLE" :params="queryParams"
+          :defaultParams="{
+            sorts: [
+              { name: 'createTime', order: 'desc' },
+              { name: 'username', order: 'asc', value: 'admin' },
+            ],
+          }" :scroll="{ y: 'calc(100% - 60px)' }">
           <template #headerLeftRender>
-            <j-permission-button
-                :hasPermission="`${permission}:add`"
-                type="primary"
-                @click="table.openDialog('add')"
-            >
-              <AIcon type="PlusOutlined"/>
+            <j-permission-button :hasPermission="`${permission}:add`" type="primary" @click="table.openDialog('add')">
+              <AIcon type="PlusOutlined" />
               {{ $t('User.index.673867-0') }}
             </j-permission-button>
           </template>
           <template #type="slotProps">
-            {{ typeOptions.find(i => i.value === slotProps?.typeId)?.label || slotProps.typeId }}
+            {{typeOptions.find(i => i.value === slotProps?.typeId)?.label || slotProps.typeId}}
           </template>
           <template #roleList="slotProps">
             <j-ellipsis>
               {{
                 slotProps?.roleList
-                    ?.map((item) => {
-                      return item.name;
-                    })
-                    .join(',') || '--'
+                  ?.map((item) => {
+                    return item.name;
+                  })
+                  .join(',') || '--'
               }}
             </j-ellipsis>
           </template>
           <template #username="slotProps">
             <span class="user-tag">
-              <j-ellipsis>{{ slotProps.username}}</j-ellipsis>
+              <j-ellipsis>{{ slotProps.username }}</j-ellipsis>
             </span>
           </template>
           <template #positions="slotProps">
             <j-ellipsis>
               {{
                 slotProps?.positions
-                    ?.map((item) => item.name)
-                    .join(',') || '--'
+                  ?.map((item) => item.name)
+                  .join(',') || '--'
               }}
             </j-ellipsis>
           </template>
           <template #status="slotProps">
-            <j-badge-status
-                :status="slotProps.status"
-                :text="slotProps.status ? $t('User.index.673867-1') : $t('User.index.673867-2')"
-                :statusNames="{
-                                1: 'success',
-                                0: 'error',
-                            }"
-            ></j-badge-status>
+            <j-badge-status :status="slotProps.status"
+              :text="slotProps.status ? $t('User.index.673867-1') : $t('User.index.673867-2')" :statusNames="{
+                1: 'success',
+                0: 'error',
+              }"></j-badge-status>
           </template>
           <template #action="slotProps">
             <a-space :size="16">
-              <j-permission-button
-                  :hasPermission="`${permission}:update`"
-                  type="link"
-                  :tooltip="{
-                                    title: $t('User.index.673867-3'),
-                                }"
-                  @click="table.openDialog('edit', slotProps)"
-              >
-                <AIcon type="EditOutlined"/>
+              <j-permission-button :hasPermission="`${permission}:update`" type="link" :tooltip="{
+                title: $t('User.index.673867-3'),
+              }" @click="table.openDialog('edit', slotProps)">
+                <AIcon type="EditOutlined" />
               </j-permission-button>
-              <j-permission-button
-                  :hasPermission="`${permission}:action`"
-                  type="link"
-                  :tooltip="{
-                                    title: `${
-                                        slotProps.status ? $t('User.index.673867-2') : $t('User.index.673867-4')
-                                    }`,
-                                }"
-                  :popConfirm="{
-                                    title: $t('User.index.673867-5', [slotProps.status ? $t('User.index.673867-2') : $t('User.index.673867-4')]),
-                                    onConfirm: () =>
-                                        table.changeStatus(slotProps),
-                                }"
-              >
-                <AIcon
-                    :type="
-                                        slotProps.status
-                                            ? 'StopOutlined'
-                                            : 'PlayCircleOutlined'
-                                    "
-                />
+              <j-permission-button :hasPermission="`${permission}:action`" type="link" :tooltip="{
+                title: `${slotProps.status ? $t('User.index.673867-2') : $t('User.index.673867-4')
+                  }`,
+              }" :popConfirm="{
+                                  title: $t('User.index.673867-5', [slotProps.status ? $t('User.index.673867-2') : $t('User.index.673867-4')]),
+                                  onConfirm: () =>
+                                    table.changeStatus(slotProps),
+                                }">
+                <AIcon :type="slotProps.status
+                    ? 'StopOutlined'
+                    : 'PlayCircleOutlined'
+                  " />
               </j-permission-button>
-              <j-permission-button
-                  :hasPermission="`${permission}:update`"
-                  type="link"
-                  :tooltip="{
-                                    title: $t('User.index.673867-6'),
-                                }"
-                  @click="table.openDialog('reset', slotProps)"
-              >
-                <AIcon type="icon-zhongzhimima"/>
+              <j-permission-button :hasPermission="`${permission}:update`" type="link" :tooltip="{
+                title: $t('User.index.673867-6'),
+              }" @click="table.openDialog('reset', slotProps)">
+                <AIcon type="icon-zhongzhimima" />
               </j-permission-button>
-              <j-permission-button
-                  type="link"
-                  :hasPermission="`${permission}:delete`"
-                  danger
-                  :tooltip="{
-                                    title: slotProps.status
-                                        ? $t('User.index.673867-7')
-                                        : $t('User.index.673867-8'),
-                                }"
-                  :popConfirm="{
-                                    title: $t('User.index.673867-9'),
-                                    onConfirm: () =>
-                                        table.clickDel(slotProps.id),
-                                }"
-                  :disabled="!!slotProps.status"
-              >
-                <AIcon type="DeleteOutlined"/>
+              <j-permission-button type="link" :hasPermission="`${permission}:delete`" danger :tooltip="{
+                title: slotProps.status
+                  ? $t('User.index.673867-7')
+                  : $t('User.index.673867-8'),
+              }" :popConfirm="{
+                                  title: $t('User.index.673867-9'),
+                                  onConfirm: () =>
+                                    table.clickDel(slotProps.id),
+                                }" :disabled="!!slotProps.status">
+                <AIcon type="DeleteOutlined" />
               </j-permission-button>
             </a-space>
           </template>
         </j-pro-table>
       </FullPage>
 
-      <EditUserDialog
-          v-if="dialog.visible"
-          :type="dialog.type"
-          v-model:visible="dialog.visible"
-          :data="dialog.selectItem"
-          @confirm="table.refresh"
-      />
+      <EditUserDialog v-if="dialog.visible" :type="dialog.type" v-model:visible="dialog.visible"
+        :data="dialog.selectItem" @confirm="table.refresh" />
     </div>
   </j-page-container>
 </template>
@@ -151,18 +102,19 @@
 import EditUserDialog from './components/EditUserDialog.vue';
 import {
   getUserType_api,
+  getOrgUserList,
   getUserList_api,
   changeUserStatus_api,
   deleteUser_api,
   queryRole_api,
 } from '@authentication-manager/api/system/user';
-import {onlyMessage} from '@jetlinks-web/utils';
-import {useI18n} from 'vue-i18n';
+import { onlyMessage } from '@jetlinks-web/utils';
+import { useI18n } from 'vue-i18n';
 import i18n from "@/locales";
-import {queryPageNoPage} from "@authentication-manager/api/system/positions";
-import {isNoCommunity} from '@/utils/utils';
+import { queryPageNoPage } from "@authentication-manager/api/system/positions";
+import { isNoCommunity } from '@/utils/utils';
 
-const {t: $t} = useI18n();
+const { t: $t } = useI18n();
 const permission = 'system/User';
 
 const typeOptions = ref([])
@@ -195,9 +147,9 @@ const columns = [
     search: {
       type: 'select',
       options: () =>
-          new Promise((resolve) => {
-            resolve(typeOptions.value);
-          }),
+        new Promise((resolve) => {
+          resolve(typeOptions.value);
+        }),
     },
     scopedSlots: true,
   },
@@ -209,22 +161,22 @@ const columns = [
       type: 'select',
       // rename:'id$in-dimension$role',
       options: () =>
-          new Promise((resolve) => {
-            queryRole_api({
-              paging: false,
-              sorts: [
-                {name: 'createTime', order: 'desc'},
-                {name: 'id', order: 'desc'},
-              ],
-            }).then((resp: any) => {
-              resolve(
-                  resp.result.map((item: dictType) => ({
-                    label: item.name,
-                    value: item.id,
-                  })),
-              );
-            });
-          }),
+        new Promise((resolve) => {
+          queryRole_api({
+            paging: false,
+            sorts: [
+              { name: 'createTime', order: 'desc' },
+              { name: 'id', order: 'desc' },
+            ],
+          }).then((resp: any) => {
+            resolve(
+              resp.result.map((item: dictType) => ({
+                label: item.name,
+                value: item.id,
+              })),
+            );
+          });
+        }),
     },
     scopedSlots: true,
   },
@@ -277,7 +229,7 @@ const columns = [
   },
 ];
 
-if(isNoCommunity) {
+if (isNoCommunity) {
   columns.splice(4, 0, {
     title: i18n.global.t('Department.util.780026-9'),
     dataIndex: 'positions',
@@ -289,7 +241,7 @@ if(isNoCommunity) {
       //   placeholder: i18n.global.t('Department.util.780026-3'),
       // },
       options() {
-        return queryPageNoPage({ paging: false, sorts: [{name: 'createTime', order: 'desc'}]}).then(resp => {
+        return queryPageNoPage({ paging: false, sorts: [{ name: 'createTime', order: 'desc' }] }).then(resp => {
           if (resp.success) {
             return resp.result.map(item => {
               return {
@@ -311,11 +263,11 @@ const tableRef = ref<Record<string, any>>({}); // 表格实例
 const table = {
   // 打开编辑弹窗
   openDialog: (type: modalType, row?: any) => {
-    dialog.selectItem = {...(row || {})};
+    dialog.selectItem = { ...(row || {}) };
     dialog.type = type;
     dialog.visible = true;
   },
-  changeStatus: ({id, status}: any) => {
+  changeStatus: ({ id, status }: any) => {
     const params = {
       status: status === 0 ? 1 : 0,
       id,
@@ -356,9 +308,9 @@ const handleParams = (params: any) => {
     termsGroupA.terms = termsGroupA.terms.map((termsItem: any) => {
       if (termsItem.column === 'id$in-dimension$role') {
         let _termType =
-            termsItem.termType === 'nin'
-                ? 'not$in'
-                : termsItem.termType;
+          termsItem.termType === 'nin'
+            ? 'not$in'
+            : termsItem.termType;
         termsItem.column = `${termsItem.column}$${_termType}`;
         delete termsItem.termType;
       }
@@ -369,8 +321,8 @@ const handleParams = (params: any) => {
         };
       }
       if (
-          ['type'].includes(termsItem.column) &&
-          termsItem.value === 'other'
+        ['type'].includes(termsItem.column) &&
+        termsItem.value === 'other'
       ) {
         arr = [
           {
@@ -412,12 +364,12 @@ const handleParams = (params: any) => {
 
     return termsGroupA;
   });
-  queryParams.value = {terms: newParams || []};
+  queryParams.value = { terms: newParams || [] };
 };
 
 onMounted(() => {
   getUserType_api().then(resp => {
-    if(resp.success){
+    if (resp.success) {
       typeOptions.value = (resp.result || []).map((item: dictType) => ({
         label: item.name,
         value: item.id,
