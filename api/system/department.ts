@@ -4,7 +4,7 @@ import { request } from '@jetlinks-web/core'
 export const getTreeData_api = (data: object) => request.post(`/organization/all/tree`, data);
 
 // 新增部门
-export const addDepartment_api = (data: object) => request.post(`/organization`, data);
+export const addDepartment_api = (data: object) => request.post(`/organization/create`, data);
 // 更新部门
 export const updateDepartment_api = (data: any) => request.put(`/organization/${data.id}`, data);
 // 删除部门

@@ -103,7 +103,6 @@ import EditUserDialog from './components/EditUserDialog.vue';
 import {
   getUserType_api,
   getOrgUserList,
-  getUserList_api,
   changeUserStatus_api,
   deleteUser_api,
   queryRole_api,
