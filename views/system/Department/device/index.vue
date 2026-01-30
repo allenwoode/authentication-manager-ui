@@ -307,13 +307,13 @@
     </FullPage>
 
     <div class="dialogs">
-      <AddDeviceDialog
+      <DeviceDialog
         v-if="dialogs.addShow"
         v-model:visible="dialogs.addShow"
         :query-columns="columns"
-        :parent-ids="props.parentIds"
-        :parent-id="props.parentId"
-        :pparent-id="props.pparentId"
+        :parent-ids="parentIds"
+        :parent-id="parentId"
+        :pparent-id="pparentId"
         :all-permission="table.permissionList.value"
         asset-type="device"
         @confirm="table.refresh"
@@ -334,7 +334,7 @@
 </template>
 
 <script setup lang="ts" name="device">
-import AddDeviceDialog from '../components/DeviceDialog.vue';
+import DeviceDialog from '../components/DeviceDialog.vue';
 import EditPermissionDialog from '../components/EditPermissionDialog.vue';
 import {onlyMessage} from '@/utils/comm';
 import {
@@ -644,10 +644,10 @@ const table = {
         terms: [
           ...oParams.terms,
             {
-              "column": "id$in-dim-asset$org$device",
-              //"column": "dimensionId",
-              //"termType": "eq",
-              "value": [props.parentId]
+              //"column": "id$in-dim-asset$org$device",
+              "column": "dimensionId",
+              "termType": "eq",
+              "value": props.parentId
             },
         ],
       };

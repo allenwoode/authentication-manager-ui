@@ -21,11 +21,11 @@ const props = defineProps<{
 
 const handleOk = () => {
     emits('confirm');
-    emits('update:visible',false)
+    emits('update:visible', false)
 };
 
 const cancel = () => {
-  emits('update:visible',false)
+  emits('update:visible', false)
 }
 
 </script>

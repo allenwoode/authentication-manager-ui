@@ -62,9 +62,9 @@
                                 </div>
                             </a-col>
                             <a-col :span="12">
-                                <div class="card-item-content-text">
+                                <!-- <div class="card-item-content-text">
                                     {{ $t('product.index.083446-19') }}
-                                </div>
+                                </div> -->
                                 <!-- <div style="cursor: pointer; height: 30px" class="card-item-content-value" @click="(e) => e.stopPropagation()">
                                     <a-checkbox-group v-model:value="slotProps.selectPermissions
                                         " :options="slotProps.permissionList" />
@@ -74,9 +74,9 @@
                                       @change="(val) => onChange(val, slotProps)"
                                   />
                                 </div> -->
-                                <div class="card-item-content-value">
+                                <!-- <div class="card-item-content-value">
                                     {{ slotProps.productName }}
-                                </div>
+                                </div> -->
                             </a-col>
                         </a-row>
                     </template>
@@ -112,9 +112,9 @@ import { onlyMessage } from '@/utils/comm';
 import {
     //getDeviceOrProductList_api,
     //getDeviceList_api,
-    getProductAssetListPost,
-    getProductAssetList_api,
-    getDeviceAssetList_api,
+    //getProductAssetListPost,
+    getProductAssetDist,
+    //getDeviceAssetList_api,
     bindDeviceOrProductList_api
 } from '@authentication-manager/api/system/department';
 import { dictType } from '../typings';
@@ -126,8 +126,6 @@ import ButtonCheckBox from './ButtonCheckBox.vue'
 
 const { t: $t } = useI18n();
 const departmentStore = useDepartmentStore();
-
-
 
 const emits = defineEmits(['confirm', 'update:visible', 'next']);
 const props = defineProps<{
@@ -162,7 +160,8 @@ const confirm = () => {
     // }));
 
     // 分配产品资产后, 进入设备资产分配
-    // departmentStore.setProductId(table.selectedRows.map((item: any) => item.id));
+    
+    departmentStore.setProductId(table.selectedRows.map((item: any) => item.id));
     const ids = table.selectedRows.map((item: any) => item.id);
     loading.value = true;
     bindDeviceOrProductList_api(props.parentId, props.assetType, ids)
@@ -180,13 +179,13 @@ const confirm = () => {
 const queryParams = ref({});
 const bulkBool = ref<boolean>(true);
 const bulkList = ref<string[]>(['read']);
-const options = computed(() =>
-    props.allPermission.map((item) => ({
-        label: item.name,
-        value: item.id,
-        disabled: item.id === 'read',
-    })),
-);
+// const options = computed(() =>
+//     props.allPermission.map((item) => ({
+//         label: item.name,
+//         value: item.id,
+//         disabled: item.id === 'read',
+//     })),
+// );
 
 const columns = props.queryColumns.filter(
     (item) => item.dataIndex !== 'action',
@@ -194,25 +193,11 @@ const columns = props.queryColumns.filter(
 
 const searchColumns = computed(() => {
     return props.queryColumns.map(item => {
-        if (departmentStore.productId) {
-            if (item.dataIndex === 'productName') {
-                item.search.first = true
-                item.search.componentProps = {
-                    mode: 'multiple',
-                    "max-tag-count": "responsive"
-                }
-                item.search.defaultTermType = 'eq'
-                item.search.defaultOnceValue = departmentStore.productId
 
-            } else if (item.search && 'first' in item.search) {
-                delete item.search.first
-            }
-        }
-        else {
             if (item.dataIndex === 'productName') {
                 item.search.defaultOnceValue = ''
             }
-        }
+        
         return item
     })
 })
@@ -232,57 +217,57 @@ const table: any = {
     tableData: [] as any[], // 列表的浅拷贝
 
     init: () => {
-        watch(
-            [bulkBool, bulkList, () => table._selectedRowKeys],
-            (n) => {
-                const nValue = n[2].value;
-                const oValue = table.backRowKeys;
+        // watch(
+        //     [bulkBool, bulkList, () => table._selectedRowKeys],
+        //     (n) => {
+        //         const nValue = n[2].value;
+        //         const oValue = table.backRowKeys;
 
-                table.selectedRows.forEach((item: any) => {
-                    // 启用批量设置
-                    if (bulkBool.value) {
-                        // 将已勾选的权限和批量设置的权限进行合并，并与自己可选的权限进行比对，取交集作为当前选中的权限
-                        // fix: bug#10756
-                        item.selectPermissions = n[1];
-                        // 禁用单独勾选
-                        (item.permissionList || []).forEach((permission: any) => {
-                            permission.disabled = true;
-                        });
-                    } else {
-                        // 取消批量设置
-                        // 放开自己权限的勾选限制，查看为必选
-                        (item.permissionList || []).forEach((permission: any) => {
-                            permission.disabled = permission.value === 'read';
-                        });
-                    }
-                });
+        //         table.selectedRows.forEach((item: any) => {
+        //             // 启用批量设置
+        //             if (bulkBool.value) {
+        //                 // 将已勾选的权限和批量设置的权限进行合并，并与自己可选的权限进行比对，取交集作为当前选中的权限
+        //                 // fix: bug#10756
+        //                 item.selectPermissions = n[1];
+        //                 // 禁用单独勾选
+        //                 (item.permissionList || []).forEach((permission: any) => {
+        //                     permission.disabled = true;
+        //                 });
+        //             } else {
+        //                 // 取消批量设置
+        //                 // 放开自己权限的勾选限制，查看为必选
+        //                 (item.permissionList || []).forEach((permission: any) => {
+        //                     permission.disabled = permission.value === 'read';
+        //                 });
+        //             }
+        //         });
 
-                // 取消勾选时触发
-                if (nValue && nValue.length < oValue.length) {
-                    // 拿到取消选中的项的id
-                    const removedKeys = oValue.filter(
-                        (key: string) => !nValue.includes(key),
-                    );
-                    // 将取消勾选的项的权限重置
-                    removedKeys.forEach((removedKey: string) => {
-                        const removedItem = table.tableData.find(
-                            (item: any) => item.id === removedKey,
-                        );
-                        removedItem.permissionList.forEach(
-                            (permission: any) => (permission.disabled = true),
-                        );
-                        removedItem.selectPermissions = ['read'];
-                    });
-                }
-                if (!nValue.length) {
-                    // 列表取消全部选择
-                    table.tableData.forEach((item: any) => {
-                        item.selectPermissions = ['read'];
-                    });
-                }
-            },
-            { deep: true },
-        );
+        //         // 取消勾选时触发
+        //         if (nValue && nValue.length < oValue.length) {
+        //             // 拿到取消选中的项的id
+        //             const removedKeys = oValue.filter(
+        //                 (key: string) => !nValue.includes(key),
+        //             );
+        //             // 将取消勾选的项的权限重置
+        //             removedKeys.forEach((removedKey: string) => {
+        //                 const removedItem = table.tableData.find(
+        //                     (item: any) => item.id === removedKey,
+        //                 );
+        //                 removedItem.permissionList.forEach(
+        //                     (permission: any) => (permission.disabled = true),
+        //                 );
+        //                 removedItem.selectPermissions = ['read'];
+        //             });
+        //         }
+        //         if (!nValue.length) {
+        //             // 列表取消全部选择
+        //             table.tableData.forEach((item: any) => {
+        //                 item.selectPermissions = ['read'];
+        //             });
+        //         }
+        //     },
+        //     { deep: true },
+        // );
     },
     // 选中
     onSelectChange: (row: any) => {
@@ -314,7 +299,7 @@ const table: any = {
     // 获取并整理数据
     getData: (params: object) =>
         new Promise((resolve) => {
-            const api = getProductAssetList_api;
+            const api = getProductAssetDist;
             api(params).then((resp: any) => {
                 type resultType = {
                     data: any[];
@@ -331,37 +316,37 @@ const table: any = {
                     delete: 2,
                     share: 3,
                 };
-                data.forEach((item) => {
-                    item.permissionList = [];
-                    item.selectPermissions = ['read'];
-                    // 资产排序
-                    item.permissionList = item.permissionList
-                        ?.map((m: any) => {
-                            return {
-                                ...m,
-                                idx: idxMap[m.value],
-                            };
-                        })
-                        ?.sort((a: any, b: any) => a.idx - b.idx);
+                // data.forEach((item) => {
+                //     item.permissionList = [];
+                //     item.selectPermissions = ['read'];
+                //     // 资产排序
+                //     item.permissionList = item.permissionList
+                //         ?.map((m: any) => {
+                //             return {
+                //                 ...m,
+                //                 idx: idxMap[m.value],
+                //             };
+                //         })
+                //         ?.sort((a: any, b: any) => a.idx - b.idx);
 
-                    // 产品的状态进行转换处理
-                    if (props.assetType === 'product') {
-                        item.state = {
-                            value:
-                                item.state === 1
-                                    ? 'online'
-                                    : item.state === 0
-                                        ? 'offline'
-                                        : '',
-                            text:
-                                item.state === 1
-                                    ? $t('components.AddDeviceOrProductDialog.314014-9')
-                                    : item.state === 0
-                                        ? $t('components.AddDeviceOrProductDialog.314014-10')
-                                        : '',
-                        };
-                    }
-                });
+                //     // 产品的状态进行转换处理
+                //     if (props.assetType === 'product') {
+                //         item.state = {
+                //             value:
+                //                 item.state === 1
+                //                     ? 'online'
+                //                     : item.state === 0
+                //                         ? 'offline'
+                //                         : '',
+                //             text:
+                //                 item.state === 1
+                //                     ? $t('components.AddDeviceOrProductDialog.314014-9')
+                //                     : item.state === 0
+                //                         ? $t('components.AddDeviceOrProductDialog.314014-10')
+                //                         : '',
+                //         };
+                //     }
+                // });
                 resolve({
                     code: 200,
                     result: {
@@ -374,61 +359,6 @@ const table: any = {
                     },
                     status: 200,
                 });
-
-                // fix: bug#10706
-                // getBindingsPermission(props.assetType, ids).then(
-                //     (perResp: any) => {
-                //         data.forEach((item) => {
-                //             item.permissionList = perResp.result
-                //                 .find((f: any) => f?.assetId === item.id)
-                //                 ?.permissionInfoList?.map((m: any) => ({
-                //                     label: m.name,
-                //                     value: m.id,
-                //                     disabled: true,
-                //                 })) || [];
-                //             item.selectPermissions = ['read'];
-                //             // 资产排序
-                //             item.permissionList = item.permissionList
-                //                 ?.map((m: any) => {
-                //                     return {
-                //                         ...m,
-                //                         idx: idxMap[m.value],
-                //                     };
-                //                 })
-                //                 ?.sort((a: any, b: any) => a.idx - b.idx);
-
-                //             // 产品的状态进行转换处理
-                //             if (props.assetType === 'product') {
-                //                 item.state = {
-                //                     value:
-                //                         item.state === 1
-                //                             ? 'online'
-                //                             : item.state === 0
-                //                                 ? 'offline'
-                //                                 : '',
-                //                     text:
-                //                         item.state === 1
-                //                             ? $t('components.AddDeviceOrProductDialog.314014-9')
-                //                             : item.state === 0
-                //                                 ? $t('components.AddDeviceOrProductDialog.314014-10')
-                //                                 : '',
-                //                 };
-                //             }
-                //         });
-                //         resolve({
-                //             code: 200,
-                //             result: {
-                //                 data: data.sort(
-                //                     (a, b) =>  b.createTime - a.createTime
-                //                 ),
-                //                 pageIndex,
-                //                 pageSize,
-                //                 total,
-                //             },
-                //             status: 200,
-                //         });
-                //     },
-                // );
             });
         }),
     // 整理参数并获取数据
@@ -437,40 +367,7 @@ const table: any = {
         var params = {};
         //console.log(props.parentId, props.pparentId);
         if (props.parentId) {
-            // let terms = [{
-            //     column: 'id',
-            //     termType: 'dim-assets$not',
-            //     value: {
-            //         assetType: props.assetType,
-            //         targets: [
-            //             {
-            //                 type: 'org',
-            //                 id: props.parentId,
-            //             },
-            //         ],
-            //     },
-            //     type: 'and'
-            // }]
-
-            // if (
-            //     props.assetType !== 'device' ||
-            //     !departmentStore.productId ||
-            //     queryCount.value > 1 ||
-            //     departmentStore.optType === 'handle'
-            // ) {
-            //     // 非设备|产品id不存在|有其他查询操作(queryCount+1)|设备页面手动点击资产分配, 均删除产品带入的id
-            //     terms[0].terms.pop();
-            // }
-            // if (oParams.terms && oParams.terms.length > 0) {
-            //     terms = [...oParams.terms, ...terms]
-            // }
-
-            // var params = {
-            //     ...oParams,
-            //     sorts: [{ name: 'id', order: 'desc' }],
-            //     terms: [],
-            // };
-
+            
             if (props.pparentId) {
                 params = {
                     ...oParams,

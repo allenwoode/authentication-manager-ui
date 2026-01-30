@@ -34,11 +34,20 @@ export const getPermissionDict_api = () => request.get(`/assets/bindings/product
 // 获取资产列表
 export const getProductAssetList_api = (data: object) => request.post(`/assets/product/_query`, data);
 
+// 获取资产选项
+export const getProductAssetOption = (data: object) => request.post(`/assets/product/options/_query`, data);
+
+// 获取资产分配
+export const getProductAssetDist = (data: object) => request.post(`/assets/product/dist/_query`, data);
+
 // 获取型号导航栏列表
 export const getProductAssetListPost = (data: object) => request.post(`/device-product/query/no-paging?paging=false`, data);
 
-// 获取资产列表
+// 获取资产列列表
 export const getDeviceAssetList_api = (data: object) => request.post(`/assets/device/_query`, data);
+
+// 获取资产列分配
+export const getDeviceAssetDist = (data: object) => request.post(`/assets/device/dist/_query`, data);
 
 // 批量绑定
 export const bindDeviceOrProductList_api = (orgId: string, type: 'device' | 'product', data: object) => request.post(`/assets/bind/${orgId}/${type}`, data);

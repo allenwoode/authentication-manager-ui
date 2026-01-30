@@ -16,85 +16,49 @@
             </div>
         </div> -->
 
-        <!-- <pro-search
-            type="simple"
-            :columns="searchColumns"
-            target="category-bind-modal"
-            @search="search"
-        /> -->
-        <pro-search type="simple" :columns="searchColumns" target="category-bind-modal" noMargin @search="search" />
-
-        <a-divider style="margin: 12px 0;" />
-        <div class="property-box">
-            <div class="property-box-left" v-if="false">
-                <div class="product-nav">
-                    <div class="list-render-sticky">
-                        <div class="product-list-header">{{ $t('Instance.index.133466-39') }}<span
-                                class="product-count">({{ filteredProducts.length }})</span></div>
-                    </div>
-                    <div>
-                        <a-input-search v-model:value="value" :placeholder="$t('Instance.index.133466-40')"
-                            style="width: 260px; margin-bottom: 10px" @search="onSearch" :allowClear="true" />
-                    </div>
-                    <div class="product-list">
-                        <a-card v-for="item in filteredProducts" :key="item.id"
-                            :class="['product-card', { active: selectedProduct === item.id || selectedProducts.includes(item.id) }]"
-                            hoverable>
-                            <div class="product-card-inner" @click="selectProduct(item.id)">
-                                <img class="product-pic" :src="item.photoUrl" alt="" />
-                                <div class="product-meta">
-                                    <div class="product-name">{{ item.name }}</div>
+        <pro-search type="simple" :columns="searchColumns" target="category-bind-modal" @search="search" />
+        <j-pro-table ref="tableRef" :request="table.requestFun" :gridColumn="2" :gridColumns="[2]" :params="queryParams"
+            :rowSelection="{
+                selectedRowKeys: table._selectedRowKeys.value,
+                onSelect: table.onSelectChange,
+                onSelectNone: table.cancelSelect,
+                onSelectAll: selectAll,
+                getCheckboxProps: () => ({
+                    // disabled: !(record.permissionList?.length && record.permissionList.find((item: any) => item.value === 'share'))
+                    disabled: false
+                }),
+            }" :columns="columns" style="max-height: 500px; overflow:auto">
+            <template #card="slotProps">
+                <CardBox :value="slotProps" :actions="[{ key: 1 }]" v-bind="slotProps" :active="table._selectedRowKeys.value.includes(slotProps.id)
+                    " @click="table.onSelectChange" :status="slotProps.state?.value"
+                    :statusText="slotProps.state?.text" :statusNames="{
+                        online: 'processing',
+                        offline: 'error',
+                        notActive: 'warning',
+                    }">
+                    <template #img>
+                        <slot name="img">
+                            <img :src="slotProps.photoUrl" style="width: 60px; height: 60px;cursor: pointer" alt="" />
+                        </slot>
+                    </template>
+                    <template #content>
+                        <h3 class="card-item-content-title" style='margin-bottom: 18px;'>
+                            <j-ellipsis style="width: calc(100% - 100px);">
+                                {{ slotProps.name }}
+                            </j-ellipsis>
+                        </h3>
+                        <a-row>
+                            <a-col :span="12">
+                                <div class="card-item-content-text">ID</div>
+                                <div style="cursor: pointer" class="card-item-content-value">
+                                    {{ slotProps.id }}
                                 </div>
-                            </div>
-                        </a-card>
-                    </div>
-                </div>
-            </div>
-
-            <div class="property-box-right">
-                <j-pro-table ref="tableRef" :request="table.requestFun" :gridColumn="2" :gridColumns="[2]"
-                    :params="queryParams" :rowSelection="{
-                        selectedRowKeys: table._selectedRowKeys.value,
-                        onSelect: table.onSelectChange,
-                        onSelectNone: table.cancelSelect,
-                        onSelectAll: selectAll,
-                        getCheckboxProps: () => ({
-                            // disabled: !(record.permissionList?.length && record.permissionList.find((item: any) => item.value === 'share'))
-                            disabled: false
-                        }),
-                    }" :columns="columns" style="max-height: 500px; overflow:auto">
-                    <template #card="slotProps">
-                        <CardBox :value="slotProps" :actions="[{ key: 1 }]" v-bind="slotProps" :active="table._selectedRowKeys.value.includes(slotProps.id)
-                            " @click="table.onSelectChange" :status="slotProps.state?.value"
-                            :statusText="slotProps.state?.text" :statusNames="{
-                                online: 'processing',
-                                offline: 'error',
-                                notActive: 'warning',
-                            }">
-                            <template #img>
-                                <slot name="img">
-                                    <img :src="slotProps.photoUrl" style="width: 60px; height: 60px;cursor: pointer"
-                                        alt="" />
-                                </slot>
-                            </template>
-                            <template #content>
-                                <h3 class="card-item-content-title" style='margin-bottom: 18px;'>
-                                    <j-ellipsis style="width: calc(100% - 100px);">
-                                        {{ slotProps.name }}
-                                    </j-ellipsis>
-                                </h3>
-                                <a-row>
-                                    <a-col :span="12">
-                                        <div class="card-item-content-text">ID</div>
-                                        <div style="cursor: pointer" class="card-item-content-value">
-                                            {{ slotProps.id }}
-                                        </div>
-                                    </a-col>
-                                    <a-col :span="12">
-                                        <div class="card-item-content-text">
-                                            {{ $t('product.index.083446-19') }}
-                                        </div>
-                                        <!-- <div style="cursor: pointer; height: 30px" class="card-item-content-value" @click="(e) => e.stopPropagation()">
+                            </a-col>
+                            <a-col :span="12">
+                                <div class="card-item-content-text">
+                                    {{ $t('product.index.083446-19') }}
+                                </div>
+                                <!-- <div style="cursor: pointer; height: 30px" class="card-item-content-value" @click="(e) => e.stopPropagation()">
                                     <a-checkbox-group v-model:value="slotProps.selectPermissions
                                         " :options="slotProps.permissionList" />
                                   <ButtonCheckBox
@@ -103,39 +67,28 @@
                                       @change="(val) => onChange(val, slotProps)"
                                   />
                                 </div> -->
-                                        <div class="card-item-content-value">
-                                            {{ slotProps.productName }}
-                                        </div>
-                                    </a-col>
-                                </a-row>
-                            </template>
-                        </CardBox>
+                                <div class="card-item-content-value">
+                                    {{ slotProps.productName }}
+                                </div>
+                            </a-col>
+                        </a-row>
                     </template>
+                </CardBox>
+            </template>
 
-                    <template #permission="slotProps">
-                        <div style="cursor: pointer" class="card-item-content-value"
-                            @click="(e) => e.stopPropagation()">
-                            <!--                    <a-checkbox-group v-model:value="slotProps.selectPermissions" :options="slotProps.permissionList" />-->
-                            <ButtonCheckBox :options="slotProps.permissionList"
-                                :value="table.selectedRows.find(i => i.id === slotProps.id)?.selectPermissions || []"
-                                @change="(val) => onChange(val, slotProps)" />
-                        </div>
-                    </template>
-                    <template #state="slotProps">
-                        <j-badge-status :status="slotProps.state.value" :text="slotProps.state.text" :statusNames="{
-                            online: 'processing',
-                            offline: 'error',
-                            notActive: 'warning',
-                        }"></j-badge-status>
-                    </template>
-                    <template #registryTime="slotProps">
-                        <span>{{
-                            slotProps.registryTime ? dayjs(slotProps.registryTime).format('YYYY-MM-DD HH:mm:ss') : "--"
-                        }}</span>
-                    </template>
-                </j-pro-table>
-            </div>
-        </div>
+            <template #state="slotProps">
+                <j-badge-status :status="slotProps.state.value" :text="slotProps.state.text" :statusNames="{
+                    online: 'processing',
+                    offline: 'error',
+                    notActive: 'warning',
+                }"></j-badge-status>
+            </template>
+            <template #registryTime="slotProps">
+                <span>{{
+                    slotProps.registryTime ? dayjs(slotProps.registryTime).format('YYYY-MM-DD HH:mm:ss') : "--"
+                }}</span>
+            </template>
+        </j-pro-table>
     </a-modal>
 </template>
 
@@ -144,9 +97,10 @@ import { onlyMessage } from '@/utils/comm';
 import {
     //getDeviceOrProductList_api,
     //getDeviceList_api,
-    getProductAssetListPost,
-    getProductAssetList_api,
-    getDeviceAssetList_api,
+    //getProductAssetListPost,
+    //getProductAssetList_api,
+    getProductAssetOption,
+    getDeviceAssetDist,
     bindDeviceOrProductList_api
 } from '@authentication-manager/api/system/department';
 import { dictType } from '../typings';
@@ -159,18 +113,18 @@ import ButtonCheckBox from './ButtonCheckBox.vue'
 const { t: $t } = useI18n();
 const departmentStore = useDepartmentStore();
 
-const productList = ref<Record<string, any>[]>([]);
-const value = ref<string>('');
-const filteredProducts = ref<Record<string, any>[]>([]);
-const selectedProduct = ref<string | undefined>(undefined);
-const selectedProducts = ref<string[]>([]);
-const tableRef = ref<any>(null);
+// const productList = ref<Record<string, any>[]>([]);
+// const value = ref<string>('');
+// const filteredProducts = ref<Record<string, any>[]>([]);
+// const selectedProduct = ref<string | undefined>(undefined);
+// const selectedProducts = ref<string[]>([]);
+//const tableRef = ref<any>(null);
 
 const emits = defineEmits(['confirm', 'update:visible', 'next']);
 const props = defineProps<{
     visible: boolean;
     queryColumns: any[];
-    parentIds: string[];
+    parentIds: string[];  //部门id列表
     parentId: string;
     pparentId: string;
     allPermission: dictType;
@@ -218,15 +172,15 @@ const confirm = () => {
 };
 
 const queryParams = ref({});
-const bulkBool = ref<boolean>(true);
-const bulkList = ref<string[]>(['read']);
-const options = computed(() =>
-    props.allPermission.map((item) => ({
-        label: item.name,
-        value: item.id,
-        disabled: item.id === 'read',
-    })),
-);
+//const bulkBool = ref<boolean>(true);
+//const bulkList = ref<string[]>(['read']);
+// const options = computed(() =>
+//     props.allPermission.map((item) => ({
+//         label: item.name,
+//         value: item.id,
+//         disabled: item.id === 'read',
+//     })),
+// );
 
 const columns = props.queryColumns.filter(
     (item) => item.dataIndex !== 'action',
@@ -235,6 +189,7 @@ const columns = props.queryColumns.filter(
 const searchColumns = computed(() => {
     return props.queryColumns.map(item => {
         if (departmentStore.productId) {
+            //console.log('departmentStore.productId: ', departmentStore.productId);
             if (item.dataIndex === 'productName') {
                 item.search.first = true
                 item.search.componentProps = {
@@ -257,43 +212,43 @@ const searchColumns = computed(() => {
     })
 })
 
-const onSearch = (v?: string) => {
-    const q = (v ?? value.value ?? '').toString().trim().toLowerCase();
-    if (!q) {
-        filteredProducts.value = productList.value.slice();
-        return;
-    }
-    filteredProducts.value = (productList.value || []).filter((p: any) => {
-        const name = (p.name || '').toString().toLowerCase();
-        const id = (p.id || '').toString().toLowerCase();
-        return name.includes(q) || id.includes(q);
-    });
-};
+// const onSearch = (v?: string) => {
+//     const q = (v ?? value.value ?? '').toString().trim().toLowerCase();
+//     if (!q) {
+//         filteredProducts.value = productList.value.slice();
+//         return;
+//     }
+//     filteredProducts.value = (productList.value || []).filter((p: any) => {
+//         const name = (p.name || '').toString().toLowerCase();
+//         const id = (p.id || '').toString().toLowerCase();
+//         return name.includes(q) || id.includes(q);
+//     });
+// };
 
-const selectProduct = (id?: string) => {
-    if (!id) return;
-    if (selectedProduct.value === id) {
-        selectedProduct.value = undefined;
-        queryParams.value = {};
-    } else {
-        selectedProduct.value = id;
-        queryParams.value = { terms: [{ terms: [{ column: 'productId', termType: 'eq', value: id }] }] };
-    }
-    // trigger table reload if supported
-    try {
-        tableRef.value?.reload?.();
-    } catch (e) {
-        // ignore
-    }
-};
+// const selectProduct = (id?: string) => {
+//     if (!id) return;
+//     if (selectedProduct.value === id) {
+//         selectedProduct.value = undefined;
+//         queryParams.value = {};
+//     } else {
+//         selectedProduct.value = id;
+//         queryParams.value = { terms: [{ terms: [{ column: 'productId', termType: 'eq', value: id }] }] };
+//     }
+//     // trigger table reload if supported
+//     try {
+//         tableRef.value?.reload?.();
+//     } catch (e) {
+//         // ignore
+//     }
+// };
 
-const onChange = (val: string[], record: any) => {
-    table.selectedRows.forEach((i: any) => {
-        if (i.id === record.id) {
-            i.selectPermissions = val
-        }
-    })
-}
+// const onChange = (val: string[], record: any) => {
+//     table.selectedRows.forEach((i: any) => {
+//         if (i.id === record.id) {
+//             i.selectPermissions = val
+//         }
+//     })
+// }
 
 const table: any = {
     _selectedRowKeys: ref<string[]>([]), // 选中项的id
@@ -302,57 +257,57 @@ const table: any = {
     tableData: [] as any[], // 列表的浅拷贝
 
     init: () => {
-        watch(
-            [bulkBool, bulkList, () => table._selectedRowKeys],
-            (n) => {
-                const nValue = n[2].value;
-                const oValue = table.backRowKeys;
+        // watch(
+        //     [bulkBool, bulkList, () => table._selectedRowKeys],
+        //     (n) => {
+        //         const nValue = n[2].value;
+        //         const oValue = table.backRowKeys;
 
-                table.selectedRows.forEach((item: any) => {
-                    // 启用批量设置
-                    if (bulkBool.value) {
-                        // 将已勾选的权限和批量设置的权限进行合并，并与自己可选的权限进行比对，取交集作为当前选中的权限
-                        // fix: bug#10756
-                        item.selectPermissions = n[1];
-                        // 禁用单独勾选
-                        (item.permissionList || []).forEach((permission: any) => {
-                            permission.disabled = true;
-                        });
-                    } else {
-                        // 取消批量设置
-                        // 放开自己权限的勾选限制，查看为必选
-                        (item.permissionList || []).forEach((permission: any) => {
-                            permission.disabled = permission.value === 'read';
-                        });
-                    }
-                });
+        //         table.selectedRows.forEach((item: any) => {
+        //             // 启用批量设置
+        //             if (bulkBool.value) {
+        //                 // 将已勾选的权限和批量设置的权限进行合并，并与自己可选的权限进行比对，取交集作为当前选中的权限
+        //                 // fix: bug#10756
+        //                 item.selectPermissions = n[1];
+        //                 // 禁用单独勾选
+        //                 (item.permissionList || []).forEach((permission: any) => {
+        //                     permission.disabled = true;
+        //                 });
+        //             } else {
+        //                 // 取消批量设置
+        //                 // 放开自己权限的勾选限制，查看为必选
+        //                 (item.permissionList || []).forEach((permission: any) => {
+        //                     permission.disabled = permission.value === 'read';
+        //                 });
+        //             }
+        //         });
 
-                // 取消勾选时触发
-                if (nValue && nValue.length < oValue.length) {
-                    // 拿到取消选中的项的id
-                    const removedKeys = oValue.filter(
-                        (key: string) => !nValue.includes(key),
-                    );
-                    // 将取消勾选的项的权限重置
-                    removedKeys.forEach((removedKey: string) => {
-                        const removedItem = table.tableData.find(
-                            (item: any) => item.id === removedKey,
-                        );
-                        removedItem.permissionList.forEach(
-                            (permission: any) => (permission.disabled = true),
-                        );
-                        removedItem.selectPermissions = ['read'];
-                    });
-                }
-                if (!nValue.length) {
-                    // 列表取消全部选择
-                    table.tableData.forEach((item: any) => {
-                        item.selectPermissions = ['read'];
-                    });
-                }
-            },
-            { deep: true },
-        );
+        //         // 取消勾选时触发
+        //         if (nValue && nValue.length < oValue.length) {
+        //             // 拿到取消选中的项的id
+        //             const removedKeys = oValue.filter(
+        //                 (key: string) => !nValue.includes(key),
+        //             );
+        //             // 将取消勾选的项的权限重置
+        //             removedKeys.forEach((removedKey: string) => {
+        //                 const removedItem = table.tableData.find(
+        //                     (item: any) => item.id === removedKey,
+        //                 );
+        //                 removedItem.permissionList.forEach(
+        //                     (permission: any) => (permission.disabled = true),
+        //                 );
+        //                 removedItem.selectPermissions = ['read'];
+        //             });
+        //         }
+        //         if (!nValue.length) {
+        //             // 列表取消全部选择
+        //             table.tableData.forEach((item: any) => {
+        //                 item.selectPermissions = ['read'];
+        //             });
+        //         }
+        //     },
+        //     { deep: true },
+        // );
     },
     // 选中
     onSelectChange: (row: any) => {
@@ -382,9 +337,9 @@ const table: any = {
         table.selectedRows = [];
     },
     // 获取并整理数据
-    getData: (params: object, parentId: string) =>
+    getData: (params: object) =>
         new Promise((resolve) => {
-            const api = getDeviceAssetList_api;
+            const api = getDeviceAssetDist;
             api(params).then((resp: any) => {
                 type resultType = {
                     data: any[];
@@ -395,25 +350,25 @@ const table: any = {
                 const { pageIndex, pageSize, total, data } = resp.result as resultType;
                 const ids = data.map((item) => item.id);
                 // 资产权限排序: 查看/编辑/删除/共享
-                const idxMap = {
-                    read: 0,
-                    save: 1,
-                    delete: 2,
-                    share: 3,
-                };
-                data.forEach((item) => {
-                    item.permissionList = [];
-                    item.selectPermissions = ['read'];
-                    // 资产排序
-                    item.permissionList = item.permissionList
-                        ?.map((m: any) => {
-                            return {
-                                ...m,
-                                idx: idxMap[m.value],
-                            };
-                        })
-                        ?.sort((a: any, b: any) => a.idx - b.idx);
-                });
+                // const idxMap = {
+                //     read: 0,
+                //     save: 1,
+                //     delete: 2,
+                //     share: 3,
+                // };
+                // data.forEach((item) => {
+                //     item.permissionList = [];
+                //     item.selectPermissions = ['read'];
+                //     // 资产排序
+                //     item.permissionList = item.permissionList
+                //         ?.map((m: any) => {
+                //             return {
+                //                 ...m,
+                //                 idx: idxMap[m.value],
+                //             };
+                //         })
+                //         ?.sort((a: any, b: any) => a.idx - b.idx);
+                // });
                 resolve({
                     code: 200,
                     result: {
@@ -427,60 +382,6 @@ const table: any = {
                     status: 200,
                 });
 
-                // fix: bug#10706
-                // getBindingsPermission(props.assetType, ids).then(
-                //     (perResp: any) => {
-                //         data.forEach((item) => {
-                //             item.permissionList = perResp.result
-                //                 .find((f: any) => f?.assetId === item.id)
-                //                 ?.permissionInfoList?.map((m: any) => ({
-                //                     label: m.name,
-                //                     value: m.id,
-                //                     disabled: true,
-                //                 })) || [];
-                //             item.selectPermissions = ['read'];
-                //             // 资产排序
-                //             item.permissionList = item.permissionList
-                //                 ?.map((m: any) => {
-                //                     return {
-                //                         ...m,
-                //                         idx: idxMap[m.value],
-                //                     };
-                //                 })
-                //                 ?.sort((a: any, b: any) => a.idx - b.idx);
-
-                //             // 产品的状态进行转换处理
-                //             if (props.assetType === 'product') {
-                //                 item.state = {
-                //                     value:
-                //                         item.state === 1
-                //                             ? 'online'
-                //                             : item.state === 0
-                //                                 ? 'offline'
-                //                                 : '',
-                //                     text:
-                //                         item.state === 1
-                //                             ? $t('components.AddDeviceOrProductDialog.314014-9')
-                //                             : item.state === 0
-                //                                 ? $t('components.AddDeviceOrProductDialog.314014-10')
-                //                                 : '',
-                //                 };
-                //             }
-                //         });
-                //         resolve({
-                //             code: 200,
-                //             result: {
-                //                 data: data.sort(
-                //                     (a, b) =>  b.createTime - a.createTime
-                //                 ),
-                //                 pageIndex,
-                //                 pageSize,
-                //                 total,
-                //             },
-                //             status: 200,
-                //         });
-                //     },
-                // );
             });
         }),
     // 整理参数并获取数据
@@ -488,54 +389,6 @@ const table: any = {
         queryCount.value += 1;
         var params = {};
         if (props.parentId) {
-            // let terms = [{
-            //     column: 'id',
-            //     termType: 'dim-assets$not',
-            //     value: {
-            //         assetType: props.assetType,
-            //         targets: [
-            //             {
-            //                 type: 'org',
-            //                 id: props.parentId,
-            //             },
-            //         ],
-            //     },
-            //     type: 'and'
-            // }]
-
-            // if (
-            //     props.assetType !== 'device' ||
-            //     !departmentStore.productId ||
-            //     queryCount.value > 1 ||
-            //     departmentStore.optType === 'handle'
-            // ) {
-            //     // 非设备|产品id不存在|有其他查询操作(queryCount+1)|设备页面手动点击资产分配, 均删除产品带入的id
-            //     terms[0].terms.pop();
-            // }
-            // if (oParams.terms && oParams.terms.length > 0) {
-            //     terms = [...oParams.terms, ...terms]
-            // }
-
-            // const params = {
-            //     ...oParams,
-            //     sorts: [{ name: 'id', order: 'desc' }],
-            //     terms: [
-            //         ...oParams.terms,
-            //         {
-            //             "column": "id$in-dim-asset$org$device$not",
-            //             //"column": "dimensionId",
-            //             //"termType": "eq",
-            //             "value": props.parentIds
-            //         },
-            //         {
-            //             "column": "id$in-dim-asset$org$device",
-            //             //"column": "dimensionId",
-            //             //"termType": "eq",
-            //             "value": [props.pparentId]
-            //         }
-            //     ],
-            // };
-
             if (props.pparentId) {
                 params = {
                     ...oParams,
@@ -567,12 +420,12 @@ const table: any = {
                             //"column": "dimensionId",
                             //"termType": "eq",
                             "value": props.parentIds
-                        }
+                        },
                     ],
                 }
             }
 
-            const resp: any = await table.getData(params, props.parentId);
+            const resp: any = await table.getData(params);
             table.tableData = resp.result.data;
             return {
                 code: resp.status,
@@ -630,8 +483,21 @@ const search = (query: any) => {
 }
 
 onMounted(() => {
-    if (props.assetType === 'device') {
-        departmentStore.setProductId(undefined)
+    
+    if (!departmentStore.productId) {
+        getProductAssetOption({
+            terms: [
+                {
+                    column: 'dimensionId',
+                    termType: 'eq',
+                    value: props.parentId,
+                },
+            ],
+        }).then((resp: any) => {
+            if (resp.status === 200) {
+                departmentStore.productId = resp.result;
+            }
+        });
     }
 
     // load products for left filter
@@ -643,10 +509,6 @@ onMounted(() => {
     // });
 });
 
-// live filter when typing
-watch(value, (v) => {
-    onSearch(v as unknown as string);
-});
 </script>
 
 <style lang="less" scoped>

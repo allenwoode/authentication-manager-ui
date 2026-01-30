@@ -128,10 +128,7 @@
                                         class="card-item-content-value"
                                     >
                                         {{
-                                            tableData.permissionList.length &&
-                                            table.getPermissLabel(
-                                                slotProps.permission,
-                                            )
+                                            slotProps.deviceCount || 0
                                         }}
                                     </div>
                                     </j-ellipsis>
@@ -564,10 +561,10 @@ const table = {
                 terms: [
                     ...oParams.terms,
                     {
-                        "column": "id$in-dim-asset$org$product",
-                        //"column": "dimensionId",
-                        //"termType": "in",
-                        "value": [props.parentId]
+                        //"column": "id$in-dim-asset$org$product",
+                        "column": "dimensionId",
+                        "termType": "eq",
+                        "value": props.parentId
                     }
                 ]
         };
@@ -591,38 +588,30 @@ const table = {
             };
         }
     },
-    queryPermissionList: async (ids: string[]) => {
-        const resp: any = await getBindingsPermission('product', ids)
-        if(resp.status === 200){
-            const arr = resp.result.map((item: any) => {
-                return item?.permissionInfoList?.map((i: any) => i?.id)
-            })
-            return intersection(...arr)
-        }
-        return []
-    },
+    // queryPermissionList: async (ids: string[]) => {
+    //     const resp: any = await getBindingsPermission('product', ids)
+    //     if(resp.status === 200){
+    //         const arr = resp.result.map((item: any) => {
+    //             return item?.permissionInfoList?.map((i: any) => i?.id)
+    //         })
+    //         return intersection(...arr)
+    //     }
+    //     return []
+    // },
     clickEdit: async (row?: any) => {
         const ids = row ? [row.id] : [...tableData._selectedRowKeys];
         if (ids.length < 1) return onlyMessage($t('product.index.083446-15'), 'warning');
         tableData.defaultPermission = row ? row?.permission : intersection(...tableData.selectedRows.map(
             (item) => item.permission,
         )) as string[]
-        const _result = await table.queryPermissionList(ids)
-        dialogs.selectIds = ids;
-        dialogs.permissList = _result as string[];
+        //const _result = await table.queryPermissionList(ids)
+        //dialogs.selectIds = ids;
+        //dialogs.permissList = _result as string[];
         dialogs.editShow = true;
     },
     clickUnBind: (row?: any) => {
         const ids = row ? [row.id] : [...tableData._selectedRowKeys];
         if (ids.length < 1) return onlyMessage($t('product.index.083446-16'), 'warning');
-        // const params = [
-        //     {
-        //         targetType: 'org',
-        //         targetId: props.parentId,
-        //         assetType: 'product',
-        //         assetIdList: ids,
-        //     },
-        // ];
         const response = unBindDeviceOrProduct_api(props.parentId, 'product', ids)
         response.then(() => {
             tableData._selectedRowKeys = [];
