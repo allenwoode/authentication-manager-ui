@@ -644,10 +644,10 @@ const table = {
         terms: [
           ...oParams.terms,
             {
-              //"column": "id$in-dim-asset$org$device",
-              "column": "dimensionId",
-              "termType": "eq",
-              "value": props.parentId
+              "column": "id$in-dim-asset$org$device",
+              //"column": "dimensionId",
+              //"termType": "eq",
+              "value": [props.parentId]
             },
         ],
       };
