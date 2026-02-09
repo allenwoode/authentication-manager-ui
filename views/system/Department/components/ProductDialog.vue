@@ -162,13 +162,16 @@ const confirm = () => {
     // 分配产品资产后, 进入设备资产分配
     
     departmentStore.setProductId(table.selectedRows.map((item: any) => item.id));
+    
     const ids = table.selectedRows.map((item: any) => item.id);
+
     loading.value = true;
+    // pass the map-like plain object to the API
     bindDeviceOrProductList_api(props.parentId, props.assetType, ids)
         .then(() => {
             onlyMessage($t('components.AddDeviceOrProductDialog.314014-7'));
             emits('confirm');
-            emits('next', table.selectedRows.map((item: any) => item.id))
+            emits('next', ids)
             emits('update:visible', false);
         })
         .finally(() => {

@@ -26,11 +26,6 @@ export const getBindingsPermission = (type: 'device' | 'product', ids: string[])
 // 获取产品的权限字典
 export const getPermissionDict_api = () => request.get(`/assets/bindings/product/permissions`);
 
-// 批量绑定
-//export const bindDeviceOrProductList_api = (type: 'device' | 'product', data: object) => request.post(`/assets/bind/${type}`, data);
-// 批量解绑
-//export const unBindDeviceOrProduct_api = (type: 'device' | 'product', data: object) => request.post(`/assets/unbind/${type}`, data);
-
 // 获取资产列表
 export const getProductAssetList_api = (data: object) => request.post(`/assets/product/_query`, data);
 

@@ -160,10 +160,8 @@ const confirm = () => {
         .then(() => {
             onlyMessage($t('components.AddDeviceOrProductDialog.314014-7'));
             emits('confirm');
-            emits('next', table.selectedRows.map((item: any) => item.id))
-            if (props.assetType === 'device') {
-                departmentStore.setProductId(undefined)
-            }
+            emits('next', ids)
+            departmentStore.setProductId(undefined)
             emits('update:visible', false);
         })
         .finally(() => {
